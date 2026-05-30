@@ -35,17 +35,17 @@
 
       .stage {
         min-height: 100vh;
-        padding: 34px;
+        padding: 22px;
         overflow: hidden;
-        background: #17120e;
+        background: #050505;
       }
 
       .app {
         position: relative;
-        min-height: calc(100vh - 48px);
+        min-height: calc(100vh - 44px);
         overflow: hidden;
-        border: 0;
-        border-radius: 48px;
+        border: 2px solid #111;
+        border-radius: 34px;
         background:
           linear-gradient(180deg, rgba(255, 253, 244, 0.94), rgba(255, 251, 239, 0.9)),
           radial-gradient(#e8dfd0 1.2px, transparent 1.3px) 0 0 / 18px 18px,
@@ -69,7 +69,7 @@
         position: relative;
         z-index: 3;
         display: grid;
-        grid-template-columns: 190px 1fr auto;
+        grid-template-columns: 1fr auto 1fr;
         align-items: center;
         gap: 20px;
         padding: 54px 72px 20px;
@@ -78,19 +78,21 @@
       .logo {
         display: inline-block;
         width: max-content;
-        border: 3px solid var(--blue);
-        border-radius: 4px;
-        background: rgba(65, 108, 244, 0.18);
-        padding: 1px 4px;
+        border: 2px solid #17120e;
+        border-radius: 3px;
+        background: #fff8ea;
+        color: #17120e;
+        padding: 2px 7px 3px;
         font-family: Georgia, "Times New Roman", serif;
         font-size: 2.05rem;
-        font-style: italic;
+        font-style: normal;
         font-weight: 500;
         letter-spacing: -0.05em;
       }
 
       .links {
         display: flex;
+        justify-self: center;
         justify-content: center;
         gap: 64px;
         color: #16110e;
@@ -122,6 +124,7 @@
 
       .top-actions {
         display: flex;
+        justify-self: end;
         align-items: center;
         gap: 15px;
       }
@@ -267,22 +270,15 @@
         position: absolute;
         right: 72px;
         bottom: 44px;
-        z-index: 2;
-        display: flex;
+        z-index: 3;
+        display: inline-flex;
         align-items: center;
-        gap: 20px;
-        color: #9a9388;
-        font-size: 1.2rem;
-        font-weight: 800;
-        letter-spacing: 0.22em;
-        text-transform: uppercase;
-      }
-
-      .built-for span {
         border-radius: 999px;
         background: #17120e;
         color: #fff;
         padding: 18px 30px;
+        font-size: 1.2rem;
+        font-weight: 1000;
         letter-spacing: 0;
         text-transform: none;
       }
@@ -628,7 +624,7 @@
         to { opacity: 1; transform: translateY(0) scale(1); }
       }
 
-      @media (max-width: 1120px) {
+      @media (max-width: 900px) {
         .nav { padding: 24px; grid-template-columns: 1fr auto; }
         .links { display: none; }
         .hero { grid-template-columns: 1fr; padding: 36px 28px; }
@@ -642,8 +638,8 @@
       }
 
       @media (max-width: 720px) {
-        .stage { padding: 8px; }
-        .app { min-height: calc(100vh - 16px); border-radius: 24px; }
+        .stage { padding: 6px; }
+        .app { min-height: calc(100vh - 12px); border-radius: 24px; }
         .blue-planet { display: none; }
         .nav { padding: 30px 24px 8px; grid-template-columns: 1fr auto; }
         .top-actions .secondary {
@@ -661,10 +657,8 @@
           left: 18px;
           right: auto;
           bottom: 24px;
-          gap: 12px;
-          font-size: 0.78rem;
+          font-size: 0.9rem;
         }
-        .built-for span { padding: 13px 18px; }
         .route-screen { padding: 18px; }
         .grid { grid-template-columns: 1fr; }
         .phone.two { display: none; }
@@ -699,7 +693,7 @@
             <p class="copy">
               Pielot is the AI revenue agent for restaurants. Find at-risk windows, write margin-safe SMS campaigns, and deploy live — all from one chat.
             </p>
-            <div class="built-for">Built for <span>Restaurants</span></div>
+            <div class="built-for">Built for restaurants</div>
             <div class="stat-card">
               <small>Projected revenue this week</small>
               <span class="big-number">$3 240</span>
