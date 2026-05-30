@@ -47,3 +47,46 @@
 
 ### Not Done Yet
 - `api/demo-chat` is still replying in fallback mode, which means the current key/base/model combo is not accepted by the upstream endpoint. Next step is setting the correct provider base URL/model for true live completions.
+
+## Update (May 30, 2026 - PRD Backbone)
+
+### Done
+- Reworked landing UI to match the provided Pielot visual direction:
+  - black outer frame,
+  - rounded dotted cream canvas,
+  - boxed serif logo,
+  - oversized headline with inline restaurant imagery,
+  - yellow/blue circles,
+  - bottom fade and "Built for Restaurants" pill.
+- MiniMax token-plan key is now live through:
+  - `MINIMAX_API_BASE=https://api.minimax.io/v1`
+  - `DEMO_MODEL=MiniMax-M2.7`
+- Added guarded MiniMax responses so live chat stays specific to Pleasure Pizza, Tuesday slow windows, margin-safe offers, and compliance.
+- Added file-backed state in `PIELOT_DATA_DIR` for:
+  - users,
+  - restaurant profile,
+  - customers,
+  - imports,
+  - campaign metrics,
+  - opt-outs,
+  - audit logs.
+- Added real backend endpoints for:
+  - `POST /api/auth/login`
+  - `GET /api/auth/me`
+  - `GET/POST /api/restaurants/current`
+  - `POST /api/customers/import`
+  - `GET /api/customers`
+  - `GET /api/data-validation`
+  - `POST /api/sms/send`
+  - `POST /api/sms/webhook`
+  - `GET /api/campaigns/:id/metrics`
+  - `GET /api/opt-outs`
+  - `GET /api/audit-log`
+- CSV import now parses rows, normalizes phone numbers, checks required fields, dedupes phones, counts opt-ins/missing consent, persists customers, and records audit events.
+- Campaign approval, SMS webhook events, redemptions, opt-outs, and campaign metrics now persist to the state file.
+
+### Not Done Yet
+- Replace file-backed state with managed Postgres for durable multi-instance production.
+- Wire real Twilio credentials and validated provider webhooks.
+- Add password/OAuth auth instead of lightweight demo session login.
+- Add full CSV file picker upload; current UI supports pasted CSV import.

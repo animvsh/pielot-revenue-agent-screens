@@ -807,12 +807,13 @@
       }
 
       function authScreen() {
-        return layout("Welcome back, operator.", "Login is mocked for the demo, but the product flow preserves the real handoff into restaurant setup.", `
+        return layout("Welcome back, operator.", "Sign in creates a lightweight session and persists the owner workspace before restaurant setup.", `
           <div class="grid">
             ${card("Account", "Owner login", "blue")}
             ${card("Workspace", data.restaurant)}
             ${card("Next", "Restaurant setup")}
           </div>
+          <div class="composer"><input id="loginEmail" value="owner@pleasurepizza.com" /><button class="primary" id="loginBtn">Sign in</button></div>
           <div class="footer-nav"><a class="secondary" href="/">Back</a><a class="primary" href="/onboarding/restaurant">Continue</a></div>
         `);
       }
@@ -846,8 +847,8 @@
       }
 
       function uploadScreen() {
-        return layout("Validate customer consent.", "The demo uses seeded CSV-like data and still shows the real validation requirements: phone normalization, opt-in filtering, dedupe, and required fields.", `
-          <div class="grid">
+        return layout("Validate customer consent.", "Paste or upload CSV-style customer data. The backend parses rows, normalizes phones, filters consent, dedupes, persists customers, and records an audit entry.", `
+          <div class="grid" id="validationStats">
             ${card("Records parsed", "412", "blue")}
             ${card("Opted in", "389")}
             ${card("Deduped", "17")}
@@ -859,7 +860,12 @@
             <thead><tr><th>Name</th><th>Phone</th><th>Opt-in</th><th>Last Order</th><th>Spend</th></tr></thead>
             <tbody><tr><td>Sarah Johnson</td><td>(415) 555-0199</td><td>Yes</td><td>36 days ago</td><td>$342</td></tr><tr><td>Mike Chen</td><td>(415) 555-0123</td><td>Yes</td><td>17 days ago</td><td>$186</td></tr><tr><td>David Patel</td><td>(415) 555-0144</td><td>No</td><td>45 days ago</td><td>$67</td></tr></tbody>
           </table>
-          <div class="footer-nav"><a class="secondary" href="/onboarding/data-source">Back</a><button class="primary" data-workflow="csv_validation">Validate Data</button></div>
+          <textarea id="csvInput" rows="6" style="width:100%;margin-top:18px" aria-label="CSV input">Customer Name,Phone Number,Opt-In,Last Order,Orders,Total Spend,Favorite Items
+Sarah Johnson,(415) 555-0199,Yes,36 days ago,12,$342.18,"Pizza, Salad"
+Mike Chen,(415) 555-0123,Yes,17 days ago,8,$186.45,"Burger, Fries"
+David Patel,(415) 555-0144,No,45 days ago,3,$67.89,Pasta
+Emily Brown,(415) 555-0102,Yes,28 days ago,6,$133.25,"Pizza, Wings"</textarea>
+          <div class="footer-nav"><a class="secondary" href="/onboarding/data-source">Back</a><button class="secondary" id="importCsvBtn">Import CSV</button><button class="primary" data-workflow="csv_validation">Validate Data</button></div>
         `);
       }
 
@@ -989,6 +995,40 @@
         else showToast(`Workflow complete: ${run.output_card_id}`);
       }
 
+      async function loginOwner() {
+        const email = document.getElementById("loginEmail")?.value || "owner@pleasurepizza.com";
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const data = await response.json();
+        showToast(data.ok ? `Signed in as ${data.user.email}` : "Login failed");
+        if (data.ok) navigate("/onboarding/restaurant");
+      }
+
+      async function importCsv() {
+        const csv = document.getElementById("csvInput")?.value || "";
+        const response = await fetch("/api/customers/import", {
+          method: "POST",
+          headers: { "Content-Type": "text/csv" },
+          body: csv,
+        });
+        const data = await response.json();
+        const stats = document.getElementById("validationStats");
+        if (stats) {
+          stats.innerHTML = [
+            card("Records parsed", data.validation.records_ready, "blue"),
+            card("Opted in", data.validation.opted_in),
+            card("Deduped", data.validation.deduped),
+            card("Missing consent", data.validation.missing_consent),
+            card("Phone format", data.validation.phone_normalized ? "Normalized" : "Needs review"),
+            card("Ready", data.ok ? "Revenue scan" : "Fix required"),
+          ].join("");
+        }
+        showToast(data.ok ? `Imported ${data.validation.records_ready} customers` : `Missing: ${data.validation.missing_fields.join(", ")}`);
+      }
+
       async function sendChat() {
         const input = document.getElementById("chatInput");
         const chat = document.getElementById("chat");
@@ -1054,6 +1094,10 @@
         screen.innerHTML = fn();
         const send = document.getElementById("sendChat");
         if (send) send.addEventListener("click", sendChat);
+        const login = document.getElementById("loginBtn");
+        if (login) login.addEventListener("click", loginOwner);
+        const importButton = document.getElementById("importCsvBtn");
+        if (importButton) importButton.addEventListener("click", importCsv);
         const approve = document.getElementById("approveCampaign");
         if (approve) approve.addEventListener("click", approveCampaign);
         hydrateMetrics();
