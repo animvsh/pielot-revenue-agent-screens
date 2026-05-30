@@ -1,4 +1,11 @@
-FROM caddy:2.8-alpine
+FROM node:20-alpine
 
-COPY Caddyfile /etc/caddy/Caddyfile
-COPY . /srv
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY . .
+
+ENV NODE_ENV=production
+EXPOSE 8080
+
+CMD ["npm", "run", "start"]

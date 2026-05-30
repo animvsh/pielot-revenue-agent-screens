@@ -3,260 +3,585 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pielot - Revenue Agent Screens</title>
+    <title>Pielot</title>
     <style>
       :root {
-        --bg: #f5f6f8;
+        --bg: #f7f6f2;
         --panel: #ffffff;
-        --line: #dde3ea;
-        --text: #19212d;
-        --muted: #5f6877;
-        --brand: #1463ff;
-        --ok: #0f9d58;
-        --warn: #f39c12;
+        --line: #e4e2da;
+        --text: #12161d;
+        --muted: #656e7c;
+        --green: #67c66a;
+        --blue: #2d6bf3;
+        --yellow: #f5ca44;
       }
       * { box-sizing: border-box; }
       body {
         margin: 0;
         font-family: "Avenir Next", "Segoe UI", sans-serif;
-        background: var(--bg);
         color: var(--text);
+        background: radial-gradient(circle at 5% 0%, #f9faf6, var(--bg));
       }
-      .app {
-        display: grid;
-        grid-template-columns: 290px minmax(0, 1fr);
+      .shell {
         min-height: 100vh;
+        display: grid;
+        grid-template-columns: 270px minmax(0, 1fr) 320px;
+        gap: 0;
       }
       .sidebar {
         border-right: 1px solid var(--line);
-        background: #f0f3f7;
+        background: #f3f1eb;
         padding: 18px 14px;
-        overflow: auto;
       }
       .brand {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 14px;
+        font-size: 2.2rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0 0 14px;
       }
-      .dot {
-        width: 30px;
-        height: 30px;
-        border-radius: 8px;
-        background: linear-gradient(140deg, #ff8f4c, #1463ff);
-      }
-      .brand h1 {
-        margin: 0;
-        font-size: 1.2rem;
-      }
-      .tag {
-        margin: 0 0 12px;
-        color: var(--muted);
-        font-size: 0.88rem;
-      }
-      .group-title {
-        margin: 16px 6px 8px;
-        color: #475265;
-        font-size: 0.78rem;
-        font-weight: 700;
+      .brand .dot { color: var(--green); }
+      .nav-title {
+        margin: 16px 8px 8px;
+        font-size: 0.74rem;
+        color: #586373;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.08em;
+        font-weight: 700;
       }
       .nav-btn {
+        display: block;
         width: 100%;
-        text-align: left;
         border: 1px solid transparent;
+        border-radius: 10px;
         background: transparent;
-        border-radius: 8px;
-        padding: 10px;
-        margin: 4px 0;
-        color: var(--text);
+        text-align: left;
+        padding: 10px 12px;
+        margin-bottom: 6px;
+        color: #1d2430;
+        font-size: 0.96rem;
         cursor: pointer;
       }
       .nav-btn:hover, .nav-btn.active {
-        border-color: #b9cffc;
-        background: #e8f0ff;
-      }
-      .main {
-        padding: 22px;
-        overflow: auto;
-      }
-      .screen {
-        display: none;
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 20px;
-      }
-      .screen.active { display: block; }
-      h2 { margin-top: 0; margin-bottom: 6px; }
-      .sub { margin: 0 0 18px; color: var(--muted); }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(12, minmax(0, 1fr));
-        gap: 12px;
-      }
-      .card {
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 12px;
-        background: #fcfdff;
-      }
-      .span-12 { grid-column: span 12; }
-      .span-8 { grid-column: span 8; }
-      .span-6 { grid-column: span 6; }
-      .span-4 { grid-column: span 4; }
-      .span-3 { grid-column: span 3; }
-      .k {
-        display: block;
-        color: var(--muted);
-        font-size: 0.8rem;
-        margin-bottom: 4px;
-      }
-      .v {
-        font-weight: 700;
-        font-size: 1.05rem;
-      }
-      ul { margin: 8px 0 0 20px; }
-      .row {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-      .pill {
-        border: 1px solid var(--line);
-        border-radius: 20px;
-        padding: 6px 10px;
-        font-size: 0.86rem;
         background: #fff;
+        border-color: #d7dce7;
       }
-      .btn {
+      .chat-list {
+        margin-top: 14px;
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+      }
+      .chat-item {
+        width: 100%;
+        text-align: left;
         border: 1px solid transparent;
-        border-radius: 8px;
-        padding: 9px 12px;
-        font-weight: 650;
+        border-radius: 10px;
+        background: transparent;
+        padding: 9px 10px;
+        margin-bottom: 6px;
+        color: #3c4554;
         cursor: pointer;
       }
-      .btn.primary { background: var(--brand); color: #fff; }
-      .btn.secondary { background: #eef3fb; color: #15314c; border-color: #cfdaea; }
+      .chat-item:hover { background: #fff; border-color: #d7dce7; }
+      .center {
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .topbar {
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #fff;
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .topbar .actions { display: flex; gap: 10px; }
+      .btn {
+        border-radius: 999px;
+        border: 1px solid #cfd4de;
+        background: #fff;
+        color: #10131a;
+        padding: 10px 16px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn.black { background: #0f1115; color: #fff; border-color: #0f1115; }
+      .btn.blue { background: var(--blue); color: #fff; border-color: var(--blue); }
+      .view {
+        margin-top: 14px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: #fff;
+        flex: 1;
+        overflow: auto;
+        padding: 16px;
+      }
+      .hidden { display: none; }
+      .hero-title {
+        font-size: clamp(2rem, 5vw, 4.1rem);
+        line-height: 0.96;
+        letter-spacing: -0.03em;
+        margin: 18px 0 12px;
+      }
+      .sub {
+        margin: 0;
+        color: var(--muted);
+        font-size: 1.08rem;
+      }
+      .prompt-grid {
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .prompt {
+        border: 1px solid #dce2ec;
+        background: #fafbfd;
+        border-radius: 12px;
+        padding: 12px;
+        text-align: left;
+        cursor: pointer;
+        font-weight: 650;
+      }
+      .composer {
+        margin-top: 14px;
+        border: 1px solid #cfd8e8;
+        border-radius: 14px;
+        padding: 10px;
+        display: flex;
+        gap: 8px;
+      }
+      .composer input {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-size: 1rem;
+      }
+      .messages { display: grid; gap: 12px; margin-top: 14px; }
+      .msg {
+        border: 1px solid #d9dee8;
+        border-radius: 12px;
+        padding: 12px;
+      }
+      .msg.user { background: #f5f9ff; border-color: #c9d9f4; }
+      .card-grid {
+        margin-top: 10px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .opp {
+        border: 1px solid #d9e0ea;
+        border-radius: 12px;
+        padding: 12px;
+        background: #fff;
+      }
+      .opp h4 { margin: 0 0 4px; font-size: 1.05rem; }
+      .mini { color: var(--muted); font-size: 0.9rem; }
+      .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+      .flow {
+        margin-top: 10px;
+        border: 1px dashed #b9c5d8;
+        border-radius: 12px;
+        padding: 14px;
+        background: #f8fbff;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .metric {
+        border: 1px solid #dbe2ec;
+        border-radius: 12px;
+        padding: 12px;
+      }
+      .metric .k { color: #66707f; font-size: 0.82rem; }
+      .metric .v { font-weight: 800; font-size: 1.7rem; }
       .table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 0.92rem;
+        margin-top: 10px;
       }
       .table th, .table td {
-        border-bottom: 1px solid var(--line);
-        padding: 8px;
+        border-bottom: 1px solid #e3e7ef;
+        padding: 10px 8px;
         text-align: left;
       }
-      .ok { color: var(--ok); font-weight: 700; }
-      .warn { color: var(--warn); font-weight: 700; }
-      .code {
-        font-family: ui-monospace, Menlo, monospace;
-        border: 1px solid var(--line);
-        background: #f7f9fc;
-        border-radius: 8px;
-        padding: 10px;
+      .panel {
+        border-left: 1px solid var(--line);
+        background: #f9f8f4;
+        padding: 18px 14px;
       }
-      @media (max-width: 980px) {
-        .app { grid-template-columns: 1fr; }
-        .sidebar { border-right: none; border-bottom: 1px solid var(--line); }
-        .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; }
+      .ctx {
+        border: 1px solid #dde3ec;
+        border-radius: 12px;
+        background: #fff;
+        padding: 12px;
+        margin-bottom: 10px;
+      }
+      .ctx h4 { margin: 0 0 8px; }
+      .stat { display: flex; justify-content: space-between; margin: 7px 0; font-size: 0.95rem; }
+      .agent {
+        border: 1px solid #dae2ee;
+        border-radius: 10px;
+        padding: 8px;
+        margin-top: 7px;
+        background: #f9fbff;
+        font-size: 0.9rem;
+      }
+      .ok { color: #1d9f57; font-weight: 700; }
+      .chip {
+        padding: 5px 8px;
+        border-radius: 999px;
+        border: 1px solid #dce2ee;
+        background: #fff;
+        font-size: 0.82rem;
+      }
+      .badge-green { background: #e5f8e6; border-color: #bde7c0; }
+      .badge-yellow { background: #fff5d3; border-color: #f4df95; }
+      @media (max-width: 1280px) {
+        .shell { grid-template-columns: 250px minmax(0, 1fr); }
+        .panel { display: none; }
+      }
+      @media (max-width: 900px) {
+        .shell { grid-template-columns: 1fr; }
+        .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
+        .prompt-grid, .card-grid, .metrics { grid-template-columns: 1fr; }
       }
     </style>
   </head>
   <body>
-    <div class="app">
+    <div class="shell">
       <aside class="sidebar">
-        <div class="brand"><div class="dot"></div><h1>Pielot</h1></div>
-        <p class="tag">AI SMS revenue agent for local restaurants</p>
+        <h1 class="brand">Pielot<span class="dot">.</span></h1>
+        <button class="btn black" id="newChatBtn">+ New Chat</button>
+        <p class="nav-title">Workspace</p>
+        <button class="nav-btn active" data-view="chatHome">Chat</button>
+        <button class="nav-btn" data-view="experiments">Experiments</button>
+        <button class="nav-btn" data-view="campaigns">Campaigns</button>
+        <button class="nav-btn" data-view="customers">Customers</button>
+        <button class="nav-btn" data-view="segments">Segments</button>
+        <button class="nav-btn" data-view="performance">Performance</button>
+        <button class="nav-btn" data-view="compliance">Compliance</button>
+        <button class="nav-btn" data-view="settings">Settings</button>
 
-        <p class="group-title">Main Happy Path</p>
-        <button class="nav-btn active" data-screen="landing">1. Landing</button>
-        <button class="nav-btn" data-screen="setup">2. Restaurant Setup</button>
-        <button class="nav-btn" data-screen="connect">3. Connect Data</button>
-        <button class="nav-btn" data-screen="validation">4. Data Validation</button>
-        <button class="nav-btn" data-screen="scan">5. AI Revenue Scan</button>
-        <button class="nav-btn" data-screen="dashboard">6. Dashboard</button>
-        <button class="nav-btn" data-screen="detail">7. Opportunity Detail</button>
-        <button class="nav-btn" data-screen="edit">8. SMS Edit</button>
-        <button class="nav-btn" data-screen="approval">9. Approval</button>
-        <button class="nav-btn" data-screen="sent">10. Scheduled / Sent</button>
-        <button class="nav-btn" data-screen="performance">11. Performance</button>
-
-        <p class="group-title">Secondary Screens</p>
-        <button class="nav-btn" data-screen="campaigns">12. Campaigns</button>
-        <button class="nav-btn" data-screen="customers">13. Customers</button>
-        <button class="nav-btn" data-screen="profile">14. Customer Profile</button>
-        <button class="nav-btn" data-screen="segments">15. Segments</button>
-        <button class="nav-btn" data-screen="chat">16. Agent Chat</button>
-        <button class="nav-btn" data-screen="compliance">17. Compliance</button>
-        <button class="nav-btn" data-screen="settings">18. Settings</button>
+        <div class="chat-list">
+          <p class="nav-title">Recent Chats</p>
+          <button class="chat-item">Friday revenue ideas</button>
+          <button class="chat-item">Win-back campaign</button>
+          <button class="chat-item">Game night bundle</button>
+          <button class="chat-item">Slow lunch hours</button>
+          <button class="chat-item">Coupon experiment</button>
+        </div>
       </aside>
 
-      <main class="main">
-        <section class="screen active" id="landing">
-          <h2>Landing / Welcome</h2>
-          <p class="sub">Find revenue opportunities and send personalized offers.</p>
-          <div class="grid">
-            <div class="card span-12">
-              <div class="row">
-                <button class="btn primary">Launch Revenue Agent</button>
-                <button class="btn secondary">Try Demo</button>
-              </div>
-            </div>
-            <div class="card span-4"><span class="v">Finds customers likely to order</span></div>
-            <div class="card span-4"><span class="v">Creates personalized SMS campaigns</span></div>
-            <div class="card span-4"><span class="v">Increases repeat revenue</span></div>
+      <main class="center">
+        <div class="topbar">
+          <div><strong>Pielot Revenue Agent</strong> <span class="mini">Chat-first revenue copilot</span></div>
+          <div class="actions">
+            <button class="btn" id="launchAgentTop">Launch Agent</button>
+            <button class="btn blue" id="runScanTop">Run New Scan</button>
+          </div>
+        </div>
+
+        <section class="view" id="chatHome">
+          <h2 class="hero-title">What revenue opportunity should we find today?</h2>
+          <p class="sub">Talk to Pielot like ChatGPT. It can analyze customers, draft campaigns, run experiments, and ask for approval before sending.</p>
+          <div class="prompt-grid">
+            <button class="prompt">Find customers likely to order tonight</button>
+            <button class="prompt">Create a win-back SMS campaign</button>
+            <button class="prompt">Run an offer experiment</button>
+            <button class="prompt">Fill slow hours this week</button>
+            <button class="prompt">Increase repeat orders</button>
+            <button class="prompt">Analyze last campaign</button>
+          </div>
+          <div class="composer">
+            <input id="chatInput" placeholder="Ask Pielot anything about your restaurant revenue..." />
+            <button class="btn black" id="sendMsgBtn">Send</button>
+          </div>
+
+          <div class="messages" id="messages"></div>
+
+          <div class="flow hidden" id="scanFlow">
+            <strong>AI Revenue Scan in progress...</strong>
+            <ul>
+              <li>Reading order history</li>
+              <li>Finding lapsed customers</li>
+              <li>Matching offers to behavior</li>
+              <li>Checking compliance</li>
+              <li>Ranking opportunities</li>
+            </ul>
           </div>
         </section>
 
-        <section class="screen" id="setup"><h2>Restaurant Setup</h2><p class="sub">Short setup form.</p><div class="grid"><div class="card span-6"><span class="k">Restaurant Name</span><span class="v">Tony's Pizza</span></div><div class="card span-6"><span class="k">Cuisine</span><span class="v">Pizza</span></div><div class="card span-6"><span class="k">Time Zone</span><span class="v">America/Los_Angeles</span></div><div class="card span-6"><span class="k">AOV</span><span class="v">$28</span></div><div class="card span-6"><span class="k">Main Goal</span><span class="v">Fill Slow Hours</span></div><div class="card span-6"><span class="k">Brand Tone</span><span class="v">Friendly</span></div><div class="card span-12"><button class="btn primary">Continue</button></div></div></section>
+        <section class="view hidden" id="experiments">
+          <h2>Experiments</h2>
+          <p class="sub">Test offers, timing, audience, and message tone.</p>
+          <div class="card-grid">
+            <div class="opp"><h4>Offer Test</h4><p class="mini">Free garlic knots vs 20% off</p><button class="btn" data-exp="offer">Create</button></div>
+            <div class="opp"><h4>Timing Test</h4><p class="mini">4 PM vs 6 PM send</p><button class="btn" data-exp="timing">Create</button></div>
+            <div class="opp"><h4>Tone Test</h4><p class="mini">Playful vs direct</p><button class="btn" data-exp="tone">Create</button></div>
+          </div>
+          <div class="flow" id="expBuilder">
+            <h3 style="margin-top:0">Experiment Builder</h3>
+            <p class="mini">Say: "Test garlic knots vs 20% off."</p>
+            <div id="expCard" class="hidden">
+              <p><strong>Experiment:</strong> Garlic Knots vs 20% Off</p>
+              <p>Audience: 200 opted-in lapsed customers, split 50/50, duration 48h.</p>
+              <p>Primary metric: Revenue per recipient.</p>
+              <div class="row">
+                <button class="btn black" id="approveExperimentBtn">Approve Experiment</button>
+                <button class="btn">Edit Variants</button>
+                <button class="btn">Change Audience</button>
+              </div>
+            </div>
+          </div>
+        </section>
 
-        <section class="screen" id="connect"><h2>Connect Data</h2><p class="sub">Upload or connect customer/order data.</p><div class="grid"><div class="card span-6"><ul><li>Upload CSV</li><li>Connect Google Sheet</li><li>Use Demo Data</li></ul></div><div class="card span-6"><ul><li>Toast (placeholder)</li><li>Square (placeholder)</li><li>Clover (placeholder)</li><li>DoorDash/Uber Eats Export</li></ul></div><div class="card span-12"><span class="k">Required fields</span><span>Customer name, phone, opt-in, last order, order count, total spend, favorite items.</span></div><div class="card span-12"><button class="btn primary">Upload Data or Use Demo Data</button></div></div></section>
+        <section class="view hidden" id="campaigns">
+          <h2>Campaign Draft + Approval</h2>
+          <p class="sub">Review, edit, and send with compliance checks.</p>
+          <div class="metrics">
+            <div class="metric"><div class="k">Projected Revenue</div><div class="v">$18,540</div></div>
+            <div class="metric"><div class="k">Audience</div><div class="v">2,124</div></div>
+            <div class="metric"><div class="k">Send Time</div><div class="v">4:30 PM</div></div>
+            <div class="metric"><div class="k">Confidence</div><div class="v">High</div></div>
+          </div>
+          <div class="flow">
+            <h3 style="margin-top:0">Win-back Pizza Lovers</h3>
+            <p>Message: "Hey Sarah! We miss you at Tony's Pizza. Here is 20% off your next order. Reply STOP to opt out."</p>
+            <p class="ok">Compliance: Opt-in only, STOP included, quiet hours respected.</p>
+            <div class="row">
+              <button class="btn black" id="approveSendBtn">Approve & Send</button>
+              <button class="btn blue" id="scheduleSendBtn">Schedule Campaign</button>
+            </div>
+          </div>
+          <div class="flow hidden" id="sentResult">
+            <h3 style="margin-top:0">Campaign Scheduled</h3>
+            <p>Status: Scheduled for today at 4:30 PM. Recipients: 2,124</p>
+            <button class="btn black" id="viewPerfBtn">View Performance</button>
+          </div>
+        </section>
 
-        <section class="screen" id="validation"><h2>Data Validation</h2><p class="sub">Confirm data is safe and usable.</p><div class="grid"><div class="card span-3"><span class="k">Customers</span><span class="v">2,814</span></div><div class="card span-3"><span class="k">Opted-in</span><span class="v">2,241</span></div><div class="card span-3"><span class="k">Invalid Phones</span><span class="v">58</span></div><div class="card span-3"><span class="k">Missing Consent</span><span class="v">117</span></div><div class="card span-6"><span class="k">Data Quality Score</span><span class="v">91 / 100</span></div><div class="card span-6"><ul><li class="ok">Opt-in required</li><li class="ok">Opt-outs excluded</li><li class="ok">Frequency caps enabled</li><li class="ok">Approval required</li></ul></div><div class="card span-12"><button class="btn primary">Run Revenue Scan</button></div></div></section>
+        <section class="view hidden" id="customers">
+          <h2>Customers</h2>
+          <p class="sub">Customer behavior and targeting context.</p>
+          <table class="table">
+            <thead><tr><th>Name</th><th>Opt-in</th><th>Last Order</th><th>Total Spend</th><th>Segment</th></tr></thead>
+            <tbody>
+              <tr><td>Sarah J.</td><td class="ok">Yes</td><td>36 days ago</td><td>$342</td><td>Lapsed 30+</td></tr>
+              <tr><td>Mike C.</td><td class="ok">Yes</td><td>12 days ago</td><td>$186</td><td>Friday Regular</td></tr>
+              <tr><td>Alicia G.</td><td class="ok">Yes</td><td>6 days ago</td><td>$512</td><td>High Value</td></tr>
+            </tbody>
+          </table>
+        </section>
 
-        <section class="screen" id="scan"><h2>AI Revenue Scan</h2><p class="sub">Agent analyzing behavior and opportunities.</p><div class="grid"><div class="card span-8"><ul><li>Reading order history</li><li>Finding lapsed customers</li><li>Detecting high-value segments</li><li>Matching offers to behavior</li><li>Checking compliance</li><li>Ranking opportunities</li></ul></div><div class="card span-4"><span class="k">Customers analyzed</span><span class="v">2,814</span><hr /><span class="k">Opportunities</span><span class="v">6</span><hr /><span class="k">Campaigns ready</span><span class="v">4</span><hr /><span class="k">Projected Revenue</span><span class="v">$7,980</span></div><div class="card span-12"><button class="btn primary">View Opportunities</button></div></div></section>
+        <section class="view hidden" id="segments">
+          <h2>Segments</h2>
+          <div class="card-grid">
+            <div class="opp"><h4>Lapsed Customers</h4><p class="mini">6,284 customers · High potential</p></div>
+            <div class="opp"><h4>Friday Regulars</h4><p class="mini">2,876 customers · Medium-high</p></div>
+            <div class="opp"><h4>Coupon Lovers</h4><p class="mini">1,941 customers · Medium</p></div>
+          </div>
+        </section>
 
-        <section class="screen" id="dashboard"><h2>Main Dashboard</h2><p class="sub">Top revenue opportunities.</p><div class="grid"><div class="card span-3"><span class="k">Projected Revenue</span><span class="v">$7,980</span></div><div class="card span-3"><span class="k">Customers</span><span class="v">2,814</span></div><div class="card span-3"><span class="k">Opportunities</span><span class="v">6</span></div><div class="card span-3"><span class="k">Campaigns Ready</span><span class="v">4</span></div><div class="card span-12"><table class="table"><thead><tr><th>Opportunity</th><th>Audience</th><th>Projected</th><th>Priority</th><th>Action</th></tr></thead><tbody><tr><td>Win back lapsed customers</td><td>412</td><td>$2,300</td><td>High</td><td><button class="btn secondary">Review</button></td></tr><tr><td>Family Friday deal</td><td>338</td><td>$1,840</td><td>High</td><td><button class="btn secondary">Review</button></td></tr><tr><td>Late-night student offer</td><td>210</td><td>$1,120</td><td>Med</td><td><button class="btn secondary">Review</button></td></tr></tbody></table></div></div></section>
+        <section class="view hidden" id="performance">
+          <h2>Campaign Performance</h2>
+          <p class="sub">Post-send proof of value and follow-up recommendations.</p>
+          <div class="metrics">
+            <div class="metric"><div class="k">Revenue Generated</div><div class="v">$18,540</div></div>
+            <div class="metric"><div class="k">Orders</div><div class="v">1,246</div></div>
+            <div class="metric"><div class="k">Delivery Rate</div><div class="v">98.2%</div></div>
+            <div class="metric"><div class="k">Opt-out Rate</div><div class="v">0.42%</div></div>
+          </div>
+          <div class="flow">
+            <h3 style="margin-top:0">AI Insights</h3>
+            <ul>
+              <li>Garlic knots offers generated 53% more revenue than percentage discounts.</li>
+              <li>Weekend sends drove 34% higher engagement.</li>
+              <li>Run follow-up in 10-14 days to convert non-buyers.</li>
+            </ul>
+            <button class="btn black">Create Follow-up Campaign</button>
+          </div>
+        </section>
 
-        <section class="screen" id="detail"><h2>Opportunity Detail</h2><p class="sub">Win Back Lapsed Customers.</p><div class="grid"><div class="card span-8"><span class="k">Why this exists</span><span>Customers with high historic spend who have not ordered for 35+ days.</span><ul><li>Audience: 412</li><li>Recommended offer: Free garlic knots with large pizza</li><li>Best send time: 4:30 PM</li><li>Confidence: 86%</li></ul><div class="code">"Hey {first_name}, we miss you at Tony's. Tonight only: free garlic knots with any large pizza. Order now: tonyspizza.com/deal Reply STOP to opt out."</div></div><div class="card span-4"><ul><li class="ok">Opt-in only</li><li class="ok">Frequency cap passed</li><li class="ok">Quiet hours respected</li></ul><p><strong>Projected:</strong> $2,300</p></div><div class="card span-12 row"><button class="btn primary">Approve Campaign</button><button class="btn secondary">Edit Message</button><button class="btn secondary">Change Offer</button><button class="btn secondary">Schedule Later</button><button class="btn secondary">Reject</button></div></div></section>
+        <section class="view hidden" id="compliance">
+          <h2>Compliance</h2>
+          <p class="sub">Safety guardrails and logs.</p>
+          <div class="flow">
+            <div class="row">
+              <span class="chip badge-green">Opted-in: 9,284</span>
+              <span class="chip">Opted-out: 347</span>
+              <span class="chip">Missing consent: 96</span>
+              <span class="chip badge-yellow">Frequency cap: 2 / 7d</span>
+            </div>
+            <ul>
+              <li class="ok">STOP handling active</li>
+              <li class="ok">Quiet hours: 9 PM - 9 AM</li>
+              <li class="ok">Approval required before send</li>
+            </ul>
+          </div>
+        </section>
 
-        <section class="screen" id="edit"><h2>SMS Edit</h2><p class="sub">Review and modify generated copy.</p><div class="grid"><div class="card span-8"><span class="k">Message (148 chars)</span><div class="code">Hey {first_name}, we miss you at Tony's. Tonight only: free garlic knots with any large pizza. Order now: tonyspizza.com/deal Reply STOP to opt out.</div><div class="row" style="margin-top:10px"><span class="pill">Make shorter</span><span class="pill">Make funnier</span><span class="pill">Make more direct</span><span class="pill">Make premium</span></div></div><div class="card span-4"><span class="k">Offer</span><span class="v">Free garlic knots</span><hr /><span class="k">Order Link</span><span class="v">tonyspizza.com/deal</span></div><div class="card span-12"><button class="btn primary">Continue to Approval</button></div></div></section>
-
-        <section class="screen" id="approval"><h2>Approval</h2><p class="sub">Final checkpoint before send.</p><div class="grid"><div class="card span-8"><ul><li>Campaign: Win Back Lapsed Customers</li><li>Recipients: 412</li><li>Send Time: Today 4:30 PM</li><li>Projected Revenue: $2,300</li></ul><div class="code">Reply STOP to opt out is included.</div></div><div class="card span-4"><ul><li class="ok">Opt-in only</li><li class="ok">Opt-out included</li><li class="ok">Frequency cap passed</li><li class="ok">Quiet hours respected</li><li class="ok">Human approval required</li></ul></div><div class="card span-12 row"><button class="btn primary">Approve & Send</button><button class="btn secondary">Schedule Campaign</button><button class="btn secondary">Cancel</button></div></div></section>
-
-        <section class="screen" id="sent"><h2>Campaign Scheduled / Sent</h2><p class="sub">Campaign approved successfully.</p><div class="grid"><div class="card span-6"><span class="k">Status</span><span class="v ok">Scheduled</span></div><div class="card span-6"><span class="k">Send Time</span><span class="v">Today 4:30 PM</span></div><div class="card span-6"><span class="k">Recipient Count</span><span class="v">412</span></div><div class="card span-6"><span class="k">Message</span><span class="v">Win-back SMS v3</span></div><div class="card span-12 row"><button class="btn secondary">Cancel Campaign</button><button class="btn primary">View Performance</button></div></div></section>
-
-        <section class="screen" id="performance"><h2>Performance</h2><p class="sub">Proof of value.</p><div class="grid"><div class="card span-3"><span class="k">Sent</span><span class="v">412</span></div><div class="card span-3"><span class="k">Delivered</span><span class="v">402</span></div><div class="card span-3"><span class="k">Orders</span><span class="v">71</span></div><div class="card span-3"><span class="k">Revenue</span><span class="v">$2,436</span></div><div class="card span-6"><span class="k">ROI</span><span class="v">4.9x</span></div><div class="card span-6"><span class="k">Best Segment</span><span class="v">Lapsed 30-45 days</span></div><div class="card span-12"><ul><li>Garlic knots offer performed best.</li><li>Best response window was 4-6 PM.</li><li>30-day lapsed users outperformed 60-day.</li></ul></div><div class="card span-12 row"><button class="btn primary">Create Similar Campaign</button><button class="btn secondary">Run New Scan</button><button class="btn secondary">View Full Report</button></div></div></section>
-
-        <section class="screen" id="campaigns"><h2>Campaigns</h2><p class="sub">Manage all campaigns.</p><div class="card"><table class="table"><thead><tr><th>Name</th><th>Status</th><th>Audience</th><th>Send</th><th>Projected</th><th>Actual</th></tr></thead><tbody><tr><td>Win back lapsed</td><td>Scheduled</td><td>412</td><td>Today 4:30 PM</td><td>$2,300</td><td>-</td></tr><tr><td>Family Friday deal</td><td>Draft</td><td>338</td><td>-</td><td>$1,840</td><td>-</td></tr><tr><td>Game night bundle</td><td>Completed</td><td>289</td><td>May 27</td><td>$1,250</td><td>$1,390</td></tr></tbody></table></div></section>
-
-        <section class="screen" id="customers"><h2>Customers</h2><p class="sub">Browse and filter customer list.</p><div class="card"><table class="table"><thead><tr><th>Name</th><th>Opt-in</th><th>Last Order</th><th>Total Spend</th><th>Favorite Item</th><th>Segment</th></tr></thead><tbody><tr><td>Jamie L.</td><td class="ok">Yes</td><td>42 days ago</td><td>$244</td><td>Pepperoni Large</td><td>Lapsed</td></tr><tr><td>Morgan P.</td><td class="ok">Yes</td><td>6 days ago</td><td>$112</td><td>Family Combo</td><td>Family Buyer</td></tr><tr><td>Taylor R.</td><td class="warn">No</td><td>18 days ago</td><td>$98</td><td>Student Slice</td><td>Late-night</td></tr></tbody></table></div></section>
-
-        <section class="screen" id="profile"><h2>Customer Profile</h2><p class="sub">Individual behavior snapshot.</p><div class="grid"><div class="card span-6"><ul><li>Name: Jamie L.</li><li>Phone: (555) 342-1129</li><li>Opt-in: Yes</li><li>Last order: 42 days ago</li><li>Order count: 11</li><li>Total spend: $244</li></ul></div><div class="card span-6"><ul><li>Favorite items: Large Pepperoni, Garlic Knots</li><li>Preferred order time: 5:00 PM</li><li>Last campaign: Family Friday (opened)</li><li>Recommended next offer: Free knots with large pizza</li></ul></div></div></section>
-
-        <section class="screen" id="segments"><h2>Segments</h2><p class="sub">AI-created groups and potential.</p><div class="grid"><div class="card span-4"><span class="v">Lapsed Customers</span><p>412 users, avg spend $31, high potential</p></div><div class="card span-4"><span class="v">Friday Regulars</span><p>301 users, avg spend $27, medium-high</p></div><div class="card span-4"><span class="v">Family Buyers</span><p>338 users, avg spend $39, high</p></div><div class="card span-4"><span class="v">Coupon Lovers</span><p>287 users, avg spend $22, medium</p></div><div class="card span-4"><span class="v">Game-night Buyers</span><p>221 users, avg spend $33, medium-high</p></div><div class="card span-4"><span class="v">High-value</span><p>99 users, avg spend $62, high</p></div></div></section>
-
-        <section class="screen" id="chat"><h2>Agent Chat</h2><p class="sub">Ask Pielot what to do.</p><div class="grid"><div class="card span-8"><div class="code">Owner: What campaign should I send today?\nPielot: Send win-back + garlic knots at 4:30 PM. Audience: 412. Projected: $2.3k.</div><div class="row" style="margin-top:10px"><span class="pill">How do I increase orders tonight?</span><span class="pill">Find customers likely to reorder</span><span class="pill">Make this less discount-heavy</span></div></div><div class="card span-4"><span class="k">Preview</span><div class="code">"Hey {first_name}, free garlic knots..."</div><p class="warn">Approval required before sending.</p></div></div></section>
-
-        <section class="screen" id="compliance"><h2>Compliance</h2><p class="sub">SMS safety and legal controls.</p><div class="grid"><div class="card span-4"><span class="k">Opted-in</span><span class="v">2,241</span></div><div class="card span-4"><span class="k">Opted-out</span><span class="v">171</span></div><div class="card span-4"><span class="k">Missing Consent</span><span class="v">117</span></div><div class="card span-6"><span class="k">Frequency cap</span><span class="v">2 campaigns / 7 days</span></div><div class="card span-6"><span class="k">Quiet hours</span><span class="v">9 PM - 9 AM</span></div><div class="card span-12"><span class="k">Audit log</span><ul><li>May 30 4:21 PM - Win-back approved by owner.</li><li>May 29 5:03 PM - Coupon-lover campaign rejected.</li></ul></div></div></section>
-
-        <section class="screen" id="settings"><h2>Settings</h2><p class="sub">Restaurant and account controls.</p><div class="grid"><div class="card span-6"><ul><li>Restaurant profile</li><li>Brand tone</li><li>Popular items</li><li>Offers allowed</li></ul></div><div class="card span-6"><ul><li>Max discount</li><li>SMS send rules</li><li>Team members</li><li>Integrations & Billing</li></ul></div><div class="card span-12 row"><button class="btn primary">Save Settings</button><button class="btn secondary">Invite Team Member</button></div></div></section>
+        <section class="view hidden" id="settings">
+          <h2>Settings</h2>
+          <p class="sub">Restaurant, offers, and integrations.</p>
+          <div class="flow">
+            <div class="row">
+              <span class="chip">Restaurant: Tony's Pizza</span>
+              <span class="chip">Tone: Friendly</span>
+              <span class="chip">Max discount: 20%</span>
+              <span class="chip">Integrations: Toast, Google Sheets</span>
+            </div>
+            <div class="row">
+              <button class="btn black">Save Settings</button>
+              <button class="btn">Manage Team</button>
+            </div>
+          </div>
+        </section>
       </main>
+
+      <aside class="panel">
+        <div class="ctx">
+          <h4>Restaurant Context</h4>
+          <div class="stat"><span>Restaurant</span><strong>Tony's Pizza</strong></div>
+          <div class="stat"><span>Customers analyzed</span><strong>12,640</strong></div>
+          <div class="stat"><span>Opted-in</span><strong>9,284</strong></div>
+          <div class="stat"><span>Campaigns ready</span><strong>8</strong></div>
+          <div class="stat"><span>Projected revenue</span><strong>$24,780</strong></div>
+          <div class="stat"><span>Current goal</span><strong>Bring back customers</strong></div>
+          <div class="stat"><span>Compliance</span><strong class="ok">Safe to send</strong></div>
+        </div>
+        <div class="ctx">
+          <h4>Active Agents</h4>
+          <div class="agent">Segmentation Agent</div>
+          <div class="agent">Opportunity Agent</div>
+          <div class="agent">Offer Agent</div>
+          <div class="agent">SMS Agent</div>
+          <div class="agent">Experiment Agent</div>
+          <div class="agent">Compliance Agent</div>
+          <div class="agent">Execution Agent</div>
+        </div>
+      </aside>
     </div>
+
     <script>
-      const buttons = document.querySelectorAll(".nav-btn");
-      const screens = document.querySelectorAll(".screen");
-      buttons.forEach((button) => {
-        button.addEventListener("click", () => {
-          const id = button.getAttribute("data-screen");
-          buttons.forEach((b) => b.classList.remove("active"));
-          screens.forEach((s) => s.classList.remove("active"));
-          button.classList.add("active");
-          document.getElementById(id).classList.add("active");
-        });
+      const navButtons = [...document.querySelectorAll(".nav-btn")];
+      const views = [...document.querySelectorAll(".view")];
+      const messages = document.getElementById("messages");
+      const scanFlow = document.getElementById("scanFlow");
+      const expCard = document.getElementById("expCard");
+      const sentResult = document.getElementById("sentResult");
+
+      function switchView(id) {
+        navButtons.forEach((b) => b.classList.toggle("active", b.dataset.view === id));
+        views.forEach((v) => v.classList.toggle("hidden", v.id !== id));
+      }
+
+      navButtons.forEach((b) => b.addEventListener("click", () => switchView(b.dataset.view)));
+
+      function addMessage(userText) {
+        const user = document.createElement("div");
+        user.className = "msg user";
+        user.innerHTML = `<strong>You:</strong> ${userText}`;
+        messages.appendChild(user);
+
+        const ai = document.createElement("div");
+        ai.className = "msg";
+        ai.innerHTML = `
+          <strong>Pielot:</strong> I found 3 high-value opportunities for today.
+          <div class="card-grid">
+            <div class="opp">
+              <h4>Win Back Lapsed Customers</h4>
+              <div class="mini">Audience: 143 · Projected: $1,120 · Confidence: High</div>
+              <div class="row"><button class="btn black make-campaign">Create Campaign</button></div>
+            </div>
+            <div class="opp">
+              <h4>Game Night Bundle</h4>
+              <div class="mini">Audience: 96 · Projected: $820 · Confidence: High</div>
+              <div class="row"><button class="btn make-campaign">Create Campaign</button></div>
+            </div>
+            <div class="opp">
+              <h4>Family Friday Deal</h4>
+              <div class="mini">Audience: 128 · Projected: $640 · Confidence: Medium</div>
+              <div class="row"><button class="btn make-campaign">Create Campaign</button></div>
+            </div>
+          </div>
+          <div class="row">
+            <button class="btn black draft-best">Draft Best Campaign</button>
+            <button class="btn open-experiments">Create Experiment</button>
+            <button class="btn">Show More</button>
+            <button class="btn">Explain Why</button>
+          </div>
+        `;
+        messages.appendChild(ai);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      document.getElementById("sendMsgBtn").addEventListener("click", () => {
+        const input = document.getElementById("chatInput");
+        const text = input.value.trim();
+        if (!text) return;
+        addMessage(text);
+        input.value = "";
+      });
+
+      document.querySelectorAll(".prompt").forEach((p) =>
+        p.addEventListener("click", () => addMessage(p.textContent))
+      );
+
+      document.getElementById("newChatBtn").addEventListener("click", () => {
+        switchView("chatHome");
+        messages.innerHTML = "";
+      });
+
+      document.getElementById("runScanTop").addEventListener("click", () => {
+        switchView("chatHome");
+        scanFlow.classList.remove("hidden");
+        setTimeout(() => {
+          scanFlow.classList.add("hidden");
+          addMessage("What can I do today to increase revenue?");
+        }, 1300);
+      });
+
+      document.addEventListener("click", (e) => {
+        if (e.target.classList.contains("open-experiments")) {
+          switchView("experiments");
+        }
+        if (e.target.classList.contains("draft-best") || e.target.classList.contains("make-campaign")) {
+          switchView("campaigns");
+        }
+      });
+
+      document.querySelectorAll("[data-exp]").forEach((btn) =>
+        btn.addEventListener("click", () => {
+          expCard.classList.remove("hidden");
+          expCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        })
+      );
+
+      document.getElementById("approveExperimentBtn").addEventListener("click", () => {
+        switchView("campaigns");
+      });
+
+      function markSent(statusLabel) {
+        sentResult.classList.remove("hidden");
+        sentResult.querySelector("p").textContent =
+          statusLabel === "scheduled"
+            ? "Status: Scheduled for today at 4:30 PM. Recipients: 2,124"
+            : "Status: Sending now. Recipients: 2,124";
+        sentResult.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+      document.getElementById("approveSendBtn").addEventListener("click", () => markSent("sending"));
+      document.getElementById("scheduleSendBtn").addEventListener("click", () => markSent("scheduled"));
+      document.getElementById("viewPerfBtn").addEventListener("click", () => switchView("performance"));
+
+      document.getElementById("launchAgentTop").addEventListener("click", () => {
+        switchView("chatHome");
+        document.getElementById("chatInput").focus();
       });
     </script>
   </body>
