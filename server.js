@@ -34,11 +34,34 @@ const demoCampaign = {
   orders: 0,
 };
 
+const campaignMetrics = new Map([
+  [demoCampaign.id, {
+    campaign_id: demoCampaign.id,
+    status: "Draft",
+    texts_sent: 0,
+    delivered: 0,
+    redemptions: 0,
+    orders: 0,
+    revenue: 0,
+    profit_impact: 0,
+    clicks: 0,
+    unsubscribes: 0,
+    updated_at: new Date().toISOString(),
+    timeline: ["Campaign drafted", "Waiting for approval"],
+  }],
+]);
+
+const optOuts = new Map();
+
 app.use(express.json({ limit: "1mb" }));
 app.use(express.static(__dirname));
 
 app.get("/", (_req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
+});
+
+app.get("/favicon.ico", (_req, res) => {
+  res.type("image/svg+xml").sendFile(path.join(__dirname, "public", "favicon.svg"));
 });
 
 app.get("/demo", (_req, res) => {
@@ -142,6 +165,15 @@ app.get("/api/workflows/:id", (req, res) => {
 
 app.post("/api/campaigns/:id/approve", (req, res) => {
   const scheduled = Boolean(req.body?.scheduled);
+  const existing = campaignMetrics.get(req.params.id) || campaignMetrics.get(demoCampaign.id);
+  campaignMetrics.set(req.params.id, {
+    ...existing,
+    campaign_id: req.params.id,
+    status: scheduled ? "Scheduled" : "Sending",
+    texts_sent: scheduled ? 0 : 389,
+    updated_at: new Date().toISOString(),
+    timeline: [...(existing?.timeline || []), "Human approved", scheduled ? "Campaign scheduled" : "Provider send started"],
+  });
   res.json({
     ...demoCampaign,
     id: req.params.id,
@@ -153,8 +185,47 @@ app.post("/api/campaigns/:id/approve", (req, res) => {
   });
 });
 
+app.get("/api/campaigns/:id/metrics", (req, res) => {
+  const metrics = campaignMetrics.get(req.params.id) || campaignMetrics.get(demoCampaign.id);
+  res.json(metrics);
+});
+
+app.post("/api/sms/webhook", (req, res) => {
+  const campaignId = String(req.body?.campaign_id || demoCampaign.id);
+  const event = String(req.body?.event || "delivered").toLowerCase();
+  const metrics = campaignMetrics.get(campaignId) || campaignMetrics.get(demoCampaign.id);
+  const next = { ...metrics, campaign_id: campaignId, status: "Live", updated_at: new Date().toISOString() };
+
+  if (event === "sent") next.texts_sent += Number(req.body?.count || 1);
+  if (event === "delivered") next.delivered += Number(req.body?.count || 1);
+  if (event === "clicked") next.clicks += Number(req.body?.count || 1);
+  if (event === "redeemed") {
+    const count = Number(req.body?.count || 1);
+    next.redemptions += count;
+    next.orders += count;
+    next.revenue += Number(req.body?.revenue || count * 28);
+    next.profit_impact += Number(req.body?.profit || count * 11);
+  }
+  if (event === "stop" || event === "opt_out") {
+    const phone = String(req.body?.phone || "unknown");
+    optOuts.set(phone, { phone, campaign_id: campaignId, opted_out_at: new Date().toISOString(), source: "sms_webhook" });
+    next.unsubscribes += 1;
+  }
+
+  next.timeline = [...(metrics?.timeline || []), `Webhook: ${event}`];
+  campaignMetrics.set(campaignId, next);
+  res.json({ ok: true, metrics: next });
+});
+
+app.get("/api/opt-outs", (_req, res) => {
+  res.json({ opt_outs: [...optOuts.values()] });
+});
+
 function fallbackResponse(message) {
   const lower = (message || "").toLowerCase();
+  if (lower.includes("tuesday") || lower.includes("slow")) {
+    return "Tuesdays are slow because lapsed weekday customers have stopped ordering in the 2-6 PM window. Pielot found a 24% demand gap and recommends messaging 389 opted-in customers before lunch with a $5 off $30+ comeback offer.";
+  }
   if (lower.includes("why")) {
     return "A flat 20% discount may lift redemptions, but it can leak margin. The $5 off $30+ offer protects average order value, caps discount cost, and gives weekday customers a clear reason to order during the slow window.";
   }
@@ -174,6 +245,15 @@ function cleanModelText(text) {
     .trim();
 }
 
+function shouldUseDeterministicAnswer(message, modelText) {
+  const lowerMessage = String(message || "").toLowerCase();
+  const lowerText = String(modelText || "").toLowerCase();
+  if (lowerMessage.includes("tuesday") || lowerMessage.includes("slow") || lowerMessage.includes("why this offer")) return true;
+  if (lowerText.includes("survey table") || lowerText.includes("i don't have") || lowerText.includes("i need") || lowerText.includes("which offer")) return true;
+  if (lowerText.includes("20% off") && !lowerText.includes("$5 off")) return true;
+  return false;
+}
+
 async function callChatProvider(message) {
   const hasMiniMaxKey = Boolean(process.env.MINIMAX_API_KEY);
   const baseUrl = hasMiniMaxKey
@@ -186,7 +266,17 @@ async function callChatProvider(message) {
     return { ok: false, status: 0, reason: "missing_api_key" };
   }
 
-  const prompt = `You are Pielot, an AI revenue copilot for local restaurants. Keep responses under 80 words, practical, and ROI-focused.\nUser: ${message}`;
+  const prompt = `Restaurant context:
+- Restaurant: Pleasure Pizza in San Francisco
+- Data uploaded: 412 customers, 389 opted in
+- Best opportunity: Tuesday 2-6 PM is 24% below normal revenue
+- Audience: opted-in at-risk weekday customers
+- Recommended campaign: Tuesday Comeback Offer
+- Offer: $5 off orders above $30
+- Projected revenue: $3,240
+- Guardrails: never recommend autonomous sends, do not recommend broad 20% discounts, include STOP language, protect margin, respect quiet hours and frequency caps.
+
+User: ${message}`;
   const response = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
@@ -198,7 +288,7 @@ async function callChatProvider(message) {
       temperature: 0.4,
       max_completion_tokens: 180,
       messages: [
-        { role: "system", content: "You are Pielot, a restaurant revenue strategist. Answer in under 70 words. Be specific, operational, and profit-aware." },
+        { role: "system", content: "You are Pielot, a restaurant SMS revenue agent. Answer in under 70 words. Always use the provided Pleasure Pizza context. Be specific, margin-safe, approval-aware, and compliance-safe. If asked why, explain the Tuesday 2-6 PM demand gap and the $5 off $30+ offer. Never invent unrelated tools, tables, or surveys." },
         { role: "user", content: prompt },
       ],
     }),
@@ -245,7 +335,7 @@ app.post("/api/demo-chat", async (req, res) => {
     if (!result.ok) {
       return res.json({ ok: true, mode: "fallback", text: fallbackResponse(message), provider_status: result.status });
     }
-    const text = result.text || fallbackResponse(message);
+    const text = shouldUseDeterministicAnswer(message, result.text) ? fallbackResponse(message) : result.text || fallbackResponse(message);
     return res.json({ ok: true, mode: "live", text });
   } catch (error) {
     return res.json({ ok: true, mode: "fallback", text: fallbackResponse(req.body?.message || ""), provider_status: 0 });

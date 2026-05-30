@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/public/favicon.svg" type="image/svg+xml" />
     <title>Pielot</title>
     <style>
       :root {
@@ -644,9 +645,26 @@
         .stage { padding: 8px; }
         .app { min-height: calc(100vh - 16px); border-radius: 24px; }
         .blue-planet { display: none; }
-        .top-actions .secondary { display: none; }
-        h1 { font-size: 3.8rem; }
-        .hero { padding: 26px 18px; }
+        .nav { padding: 30px 24px 8px; grid-template-columns: 1fr auto; }
+        .top-actions .secondary {
+          display: inline-flex;
+          padding: 11px 15px;
+          font-size: 0.88rem;
+        }
+        h1 { font-size: 3.22rem; line-height: 0.95; }
+        .inline-photo { min-height: 56px; margin: 0 10px; }
+        .inline-dot { min-width: 74px; min-height: 74px; margin: 0 8px; }
+        .inline-face { min-width: 68px; min-height: 68px; margin-left: 8px; }
+        .hero { min-height: 770px; padding: 28px 18px 116px; }
+        .copy { margin-top: 32px; font-size: 1.08rem; }
+        .built-for {
+          left: 18px;
+          right: auto;
+          bottom: 24px;
+          gap: 12px;
+          font-size: 0.78rem;
+        }
+        .built-for span { padding: 13px 18px; }
         .route-screen { padding: 18px; }
         .grid { grid-template-columns: 1fr; }
         .phone.two { display: none; }
@@ -912,15 +930,15 @@
 
       function performanceScreen() {
         return layout("Campaign performance.", "Before send, metrics stay at zero. After provider events, delivery, revenue, orders, and opt-outs update here.", `
-          <div class="grid">
-            ${card("Status", "Scheduled", "blue")}
-            ${card("Texts", "389")}
-            ${card("Revenue", "$0 before send")}
-            ${card("Delivery rate", "0%")}
+          <div class="grid" id="metricsGrid">
+            ${card("Status", "Loading", "blue")}
+            ${card("Texts sent", "0")}
+            ${card("Delivered", "0")}
+            ${card("Revenue", "$0")}
             ${card("Orders", "0")}
             ${card("Opt-outs", "0")}
           </div>
-          <div class="card soft" style="margin-top:20px"><strong>Timeline</strong><p>Approved -> Scheduled -> Provider send -> Webhook delivery -> Revenue attribution.</p></div>
+          <div class="card soft" style="margin-top:20px"><strong>Timeline</strong><p id="metricsTimeline">Approved -> Scheduled -> Provider send -> Webhook delivery -> Revenue attribution.</p></div>
         `);
       }
 
@@ -999,6 +1017,24 @@
         navigate("/campaigns/camp_tuesday_comeback");
       }
 
+      async function hydrateMetrics() {
+        const grid = document.getElementById("metricsGrid");
+        if (!grid) return;
+        const response = await fetch("/api/campaigns/camp_tuesday_comeback/metrics");
+        const metrics = await response.json();
+        const deliveryRate = metrics.texts_sent ? Math.round((metrics.delivered / metrics.texts_sent) * 100) : 0;
+        grid.innerHTML = [
+          card("Status", metrics.status, "blue"),
+          card("Texts sent", metrics.texts_sent),
+          card("Delivered", `${deliveryRate}%`),
+          card("Revenue", `$${metrics.revenue}`),
+          card("Orders", metrics.orders),
+          card("Opt-outs", metrics.unsubscribes),
+        ].join("");
+        const timeline = document.getElementById("metricsTimeline");
+        if (timeline) timeline.textContent = (metrics.timeline || []).join(" -> ");
+      }
+
       function navigate(path) {
         history.pushState({}, "", path);
         render();
@@ -1020,6 +1056,7 @@
         if (send) send.addEventListener("click", sendChat);
         const approve = document.getElementById("approveCampaign");
         if (approve) approve.addEventListener("click", approveCampaign);
+        hydrateMetrics();
       }
 
       document.addEventListener("click", (event) => {
