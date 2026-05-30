@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Internal Lovable project</title>
+    <meta name="description" content="This Lovable project is only available to authorized workspace members." />
+    <style>
+      :root {
+        --text: #5f6472;
+        --text-h: #161922;
+        --bg: #fcfbf8;
+        --border: #dcdfe6;
+        font-family: "Sora", "Avenir Next", "Segoe UI", sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        background:
+          radial-gradient(85rem 34rem at 10% -10%, #f1f4ff 0%, #fcfbf8 60%),
+          radial-gradient(80rem 32rem at 90% 110%, #f7efe5 0%, #fcfbf8 64%);
+      }
+      .page { width: min(760px, 92vw); margin: 42px auto; display: grid; gap: 30px; }
+      .brand { display: flex; align-items: center; justify-content: center; gap: 12px; }
+      .brand-text { font-size: 28px; font-weight: 650; color: var(--text-h); }
+      .brand-mark { width: 48px; height: 48px; border-radius: 16px; position: relative; overflow: hidden; background: #0e0f12; }
+      .blob { position: absolute; border-radius: 999px; filter: blur(8px); opacity: 0.92; }
+      .b1 { width: 48px; height: 48px; left: -8px; top: 14px; background: #4b73ff; }
+      .b2 { width: 66px; height: 46px; right: -20px; top: -8px; background: #ff66f4; }
+      .b3 { width: 56px; height: 42px; right: -14px; bottom: -10px; background: #fe7b02; }
+      .b4 { width: 40px; height: 34px; left: 6px; top: 2px; background: #ff0105; }
+      .card, .not-found {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #ffffffcc;
+        padding: 28px;
+        box-shadow: 0 14px 35px #00000014;
+      }
+      .card h1 { margin: 0; font-size: clamp(1.65rem, 3vw, 2.15rem); color: var(--text-h); }
+      .card p, .not-found p { margin: 10px 0 0; font-size: 1rem; }
+      .actions { margin-top: 20px; display: grid; gap: 10px; }
+      .btn {
+        border: 1px solid transparent;
+        border-radius: 8px;
+        height: 44px;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .btn.primary { background: #111216; color: #fdfdfd; }
+      .btn.secondary { background: #f5f6f8; color: #111216; border-color: #d8dce3; }
+      .btn.ghost { margin-top: 16px; background: transparent; border-color: #d8dce3; color: var(--text-h); }
+      .foot { margin-top: 14px; display: flex; gap: 14px; flex-wrap: wrap; }
+      .foot a { color: #2e3f89; text-decoration: none; font-weight: 600; }
+      .not-found { text-align: center; }
+      .code { font-size: clamp(4.2rem, 12vw, 8rem); line-height: 1; opacity: 0.15; color: var(--text-h); font-weight: 800; }
+      .not-found h2 { margin: 0; font-size: 1.6rem; color: var(--text-h); }
+      @media (max-width: 640px) {
+        .page { margin-top: 24px; gap: 18px; }
+        .card, .not-found { padding: 18px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <span class="blob b1"></span>
+          <span class="blob b2"></span>
+          <span class="blob b3"></span>
+          <span class="blob b4"></span>
+        </div>
+        <span class="brand-text">Lovable</span>
+      </header>
+
+      <section class="card">
+        <h1>Internal Lovable project</h1>
+        <p>This Lovable project is only available to authorized workspace members.</p>
+        <div class="actions">
+          <button class="btn primary" type="button">Continue with Google</button>
+          <button class="btn secondary" type="button">Continue with GitHub</button>
+          <button class="btn secondary" type="button">Continue with Email</button>
+        </div>
+        <div class="foot">
+          <a href="https://lovable.dev/auth-bridge">Open auth bridge</a>
+          <a href="https://lovable.dev">Lovable</a>
+        </div>
+      </section>
+
+      <section class="not-found">
+        <div class="code">404</div>
+        <h2>Page not found</h2>
+        <p>The page you're looking for doesn't exist or has been moved.</p>
+        <button class="btn ghost" type="button">Go home</button>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+:root {
+  --text: #5f6472;
+  --text-h: #161922;
+  --bg: #fcfbf8;
+  --border: #dcdfe6;
+  --font-main: "Sora", "Avenir Next", "Segoe UI", sans-serif;
+  font-family: var(--font-main);
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(85rem 34rem at 10% -10%, #f1f4ff 0%, #fcfbf8 60%),
+    radial-gradient(80rem 32rem at 90% 110%, #f7efe5 0%, #fcfbf8 64%);
+}
+
+#root {
+  min-height: 100vh;
+}
