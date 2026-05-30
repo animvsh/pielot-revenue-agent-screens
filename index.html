@@ -6,583 +6,1036 @@
     <title>Pielot</title>
     <style>
       :root {
-        --bg: #f7f6f2;
+        --blue: #416cf4;
+        --blue-dark: #2f56d8;
+        --sky: #eef2ff;
+        --ink: #15161c;
+        --muted: #7d8494;
+        --line: #dfe5ff;
         --panel: #ffffff;
-        --line: #e4e2da;
-        --text: #12161d;
-        --muted: #656e7c;
-        --green: #67c66a;
-        --blue: #2d6bf3;
-        --yellow: #f5ca44;
+        --yellow: #ffd53f;
+        --green: #5dcb7a;
+        --red: #ff6848;
+        --shadow: 0 28px 70px rgba(43, 70, 150, 0.16);
       }
+
       * { box-sizing: border-box; }
+
       body {
         margin: 0;
-        font-family: "Avenir Next", "Segoe UI", sans-serif;
-        color: var(--text);
-        background: radial-gradient(circle at 5% 0%, #f9faf6, var(--bg));
-      }
-      .shell {
         min-height: 100vh;
+        color: var(--ink);
+        background: #e9edfa;
+        font-family: "Avenir Next", "Arial Rounded MT Bold", Inter, system-ui, sans-serif;
+      }
+
+      a { color: inherit; text-decoration: none; }
+      button, input, select, textarea { font: inherit; }
+
+      .stage {
+        min-height: 100vh;
+        padding: 34px;
+        overflow: hidden;
+        background: #17120e;
+      }
+
+      .app {
+        position: relative;
+        min-height: calc(100vh - 48px);
+        overflow: hidden;
+        border: 0;
+        border-radius: 48px;
+        background:
+          linear-gradient(180deg, rgba(255, 253, 244, 0.94), rgba(255, 251, 239, 0.9)),
+          radial-gradient(#e8dfd0 1.2px, transparent 1.3px) 0 0 / 18px 18px,
+          #fffaf0;
+        box-shadow: 0 26px 70px rgba(0, 0, 0, 0.38);
+      }
+
+      .blue-planet {
+        position: absolute;
+        right: -260px;
+        top: 180px;
+        width: 620px;
+        height: 620px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(65,108,244,0.22), rgba(65,108,244,0));
+        filter: blur(18px);
+        z-index: 0;
+      }
+
+      .nav {
+        position: relative;
+        z-index: 3;
         display: grid;
-        grid-template-columns: 270px minmax(0, 1fr) 320px;
-        gap: 0;
-      }
-      .sidebar {
-        border-right: 1px solid var(--line);
-        background: #f3f1eb;
-        padding: 18px 14px;
-      }
-      .brand {
-        font-size: 2.2rem;
-        font-weight: 800;
-        letter-spacing: -0.02em;
-        margin: 0 0 14px;
-      }
-      .brand .dot { color: var(--green); }
-      .nav-title {
-        margin: 16px 8px 8px;
-        font-size: 0.74rem;
-        color: #586373;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        font-weight: 700;
-      }
-      .nav-btn {
-        display: block;
-        width: 100%;
-        border: 1px solid transparent;
-        border-radius: 10px;
-        background: transparent;
-        text-align: left;
-        padding: 10px 12px;
-        margin-bottom: 6px;
-        color: #1d2430;
-        font-size: 0.96rem;
-        cursor: pointer;
-      }
-      .nav-btn:hover, .nav-btn.active {
-        background: #fff;
-        border-color: #d7dce7;
-      }
-      .chat-list {
-        margin-top: 14px;
-        border-top: 1px solid var(--line);
-        padding-top: 12px;
-      }
-      .chat-item {
-        width: 100%;
-        text-align: left;
-        border: 1px solid transparent;
-        border-radius: 10px;
-        background: transparent;
-        padding: 9px 10px;
-        margin-bottom: 6px;
-        color: #3c4554;
-        cursor: pointer;
-      }
-      .chat-item:hover { background: #fff; border-color: #d7dce7; }
-      .center {
-        padding: 18px 20px;
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
-      }
-      .topbar {
-        border: 1px solid var(--line);
-        border-radius: 16px;
-        background: #fff;
-        padding: 12px 16px;
-        display: flex;
-        justify-content: space-between;
+        grid-template-columns: 190px 1fr auto;
         align-items: center;
+        gap: 20px;
+        padding: 54px 72px 20px;
       }
-      .topbar .actions { display: flex; gap: 10px; }
-      .btn {
-        border-radius: 999px;
-        border: 1px solid #cfd4de;
-        background: #fff;
-        color: #10131a;
-        padding: 10px 16px;
-        font-weight: 700;
-        cursor: pointer;
+
+      .logo {
+        display: inline-block;
+        width: max-content;
+        border: 3px solid var(--blue);
+        border-radius: 4px;
+        background: rgba(65, 108, 244, 0.18);
+        padding: 1px 4px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 2.05rem;
+        font-style: italic;
+        font-weight: 500;
+        letter-spacing: -0.05em;
       }
-      .btn.black { background: #0f1115; color: #fff; border-color: #0f1115; }
-      .btn.blue { background: var(--blue); color: #fff; border-color: var(--blue); }
-      .view {
-        margin-top: 14px;
-        border: 1px solid var(--line);
-        border-radius: 16px;
-        background: #fff;
-        flex: 1;
-        overflow: auto;
-        padding: 16px;
-      }
-      .hidden { display: none; }
-      .hero-title {
-        font-size: clamp(2rem, 5vw, 4.1rem);
-        line-height: 0.96;
-        letter-spacing: -0.03em;
-        margin: 18px 0 12px;
-      }
-      .sub {
-        margin: 0;
-        color: var(--muted);
-        font-size: 1.08rem;
-      }
-      .prompt-grid {
-        margin-top: 20px;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
-      }
-      .prompt {
-        border: 1px solid #dce2ec;
-        background: #fafbfd;
-        border-radius: 12px;
-        padding: 12px;
-        text-align: left;
-        cursor: pointer;
-        font-weight: 650;
-      }
-      .composer {
-        margin-top: 14px;
-        border: 1px solid #cfd8e8;
-        border-radius: 14px;
-        padding: 10px;
+
+      .links {
         display: flex;
-        gap: 8px;
+        justify-content: center;
+        gap: 64px;
+        color: #16110e;
+        font-weight: 900;
       }
-      .composer input {
-        flex: 1;
-        border: none;
-        outline: none;
-        font-size: 1rem;
+
+      .links a.active {
+        color: #111;
       }
-      .messages { display: grid; gap: 12px; margin-top: 14px; }
-      .msg {
-        border: 1px solid #d9dee8;
-        border-radius: 12px;
-        padding: 12px;
+
+      .badge-dot {
+        position: relative;
       }
-      .msg.user { background: #f5f9ff; border-color: #c9d9f4; }
-      .card-grid {
-        margin-top: 10px;
+
+      .badge-dot::after {
+        content: attr(data-count);
+        position: absolute;
+        top: -12px;
+        right: -14px;
+        width: 18px;
+        height: 18px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--yellow);
+        color: var(--blue);
+        font-size: 0.68rem;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .circle {
+        width: 56px;
+        height: 56px;
+        display: none;
+        place-items: center;
+        border: 0;
+        border-radius: 50%;
+        background: var(--blue);
+        color: #fff;
+        font-weight: 1000;
+        box-shadow: 0 15px 26px rgba(65, 108, 244, 0.25);
+        cursor: pointer;
+      }
+
+      .primary {
+        border: 0;
+        border-radius: 999px;
+        background: #17120e;
+        color: #fff;
+        padding: 18px 34px;
+        font-weight: 1000;
+        box-shadow: 0 18px 34px rgba(23, 18, 14, 0.18);
+        cursor: pointer;
+      }
+
+      .secondary {
+        border: 2px solid #17120e;
+        border-radius: 999px;
+        background: #fff;
+        color: #17120e;
+        padding: 18px 34px;
+        font-weight: 1000;
+        cursor: pointer;
+      }
+
+      .ghost {
+        border: 0;
+        background: transparent;
+        color: var(--blue);
+        font-weight: 1000;
+        cursor: pointer;
+      }
+
+      .hero {
+        position: relative;
+        z-index: 2;
+        display: block;
+        min-height: 760px;
+        padding: 132px 72px 54px;
+      }
+
+      h1 {
+        max-width: 1470px;
+        margin: 0;
+        font-size: clamp(4.5rem, 8.2vw, 10.2rem);
+        line-height: 0.92;
+        letter-spacing: -0.055em;
+        font-weight: 1000;
+      }
+
+      .hero-mark {
+        display: inline-block;
+        margin-right: 10px;
+        color: #312d28;
+        font-weight: 1000;
+        transform: translateY(-0.04em);
+      }
+
+      .inline-photo {
+        display: inline-block;
+        width: clamp(160px, 15vw, 310px);
+        height: 0.62em;
+        min-height: 86px;
+        margin: 0 20px;
+        border-radius: 999px;
+        vertical-align: middle;
+        background:
+          linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.05)),
+          url("https://images.unsplash.com/photo-1559329007-40df8a9345d8?auto=format&fit=crop&w=700&q=80") center / cover;
+      }
+
+      .inline-face {
+        display: inline-block;
+        width: 0.86em;
+        height: 0.86em;
+        min-width: 92px;
+        min-height: 92px;
+        margin-left: 20px;
+        border-radius: 50%;
+        vertical-align: middle;
+        background:
+          linear-gradient(rgba(0,0,0,0.04), rgba(0,0,0,0.04)),
+          url("https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?auto=format&fit=crop&w=420&q=80") center / cover;
+      }
+
+      .inline-dot {
+        display: inline-grid;
+        place-items: center;
+        width: 0.9em;
+        height: 0.9em;
+        min-width: 118px;
+        min-height: 118px;
+        margin: 0 18px;
+        border-radius: 50%;
+        vertical-align: middle;
+      }
+
+      .inline-dot.yellow {
+        background: #ffd723;
+      }
+
+      .inline-dot.blue {
+        background: var(--blue);
+        color: #fff;
+        font-size: 0.44em;
+      }
+
+      .copy {
+        max-width: 830px;
+        margin: 94px 0 0;
+        color: #4a453f;
+        font-size: clamp(1.45rem, 2.2vw, 2.1rem);
+        line-height: 1.55;
+        font-weight: 700;
+      }
+
+      .hero-fade {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 240px;
+        pointer-events: none;
+        background: linear-gradient(180deg, rgba(255,250,240,0), #fffaf0 72%);
+        z-index: 1;
+      }
+
+      .built-for {
+        position: absolute;
+        right: 72px;
+        bottom: 44px;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        color: #9a9388;
+        font-size: 1.2rem;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+      }
+
+      .built-for span {
+        border-radius: 999px;
+        background: #17120e;
+        color: #fff;
+        padding: 18px 30px;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+
+      .stat-card {
+        display: none;
+        width: min(380px, 100%);
+        margin-top: 34px;
+        border-radius: 34px;
+        background: #f7f8fe;
+        padding: 26px 30px;
+        box-shadow: 0 20px 48px rgba(51, 62, 91, 0.08);
+        animation: jump 4s ease-in-out infinite;
+      }
+
+      .stat-card small {
+        color: #12131a;
+        font-weight: 900;
+      }
+
+      .big-number {
+        display: block;
+        margin-top: 8px;
+        color: var(--blue);
+        font-size: 2.4rem;
+        font-weight: 1000;
+        letter-spacing: 0.05em;
+      }
+
+      .mini-note {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #a0a6b7;
+        margin-top: 22px;
+        font-weight: 800;
+      }
+
+      .mini-note span {
+        border-radius: 14px;
+        background: var(--yellow);
+        color: #fff;
+        padding: 9px 14px;
+      }
+
+      .phones {
+        display: none;
+        position: relative;
+        min-height: 630px;
+      }
+
+      .phone {
+        position: absolute;
+        width: 360px;
+        height: 640px;
+        border: 5px solid rgba(255,255,255,0.9);
+        border-radius: 52px;
+        background: var(--blue);
+        box-shadow: 0 45px 80px rgba(16, 34, 106, 0.28);
+        color: #fff;
+      }
+
+      .phone.one {
+        left: 12%;
+        top: 56px;
+        transform: rotate(-30deg);
+        animation: floatLeft 5s ease-in-out infinite;
+      }
+
+      .phone.two {
+        right: -26px;
+        top: -10px;
+        transform: rotate(28deg);
+        animation: floatRight 5.8s ease-in-out infinite;
+      }
+
+      .phone-inner {
+        padding: 70px 34px;
+      }
+
+      .phone h2 {
+        margin: 24px 0;
+        font-size: 2.65rem;
+        line-height: 1.05;
+        letter-spacing: -0.04em;
+      }
+
+      .task-card {
+        margin-top: 36px;
+        border-radius: 28px;
+        background: #fff;
+        color: #17191f;
+        padding: 24px;
+        transform: rotate(-2deg);
+      }
+
+      .task-row {
+        display: grid;
+        grid-template-columns: 22px 1fr auto;
+        gap: 12px;
+        align-items: center;
+        margin: 15px 0;
+        color: #8c92a1;
+        font-weight: 800;
+      }
+
+      .radio {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--blue);
+        border-radius: 50%;
+      }
+
+      .task-pill {
+        border-radius: 999px;
+        background: var(--blue);
+        color: #fff;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        font-weight: 1000;
+      }
+
+      .route-screen {
+        position: relative;
+        z-index: 2;
+        display: none;
+        padding: 28px 56px 54px;
+      }
+
+      .route-screen.active {
+        display: block;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        gap: 28px;
+      }
+
+      .side {
+        border-radius: 32px;
+        background: #f5f7ff;
+        padding: 18px;
+      }
+
+      .side a {
+        display: block;
+        border-radius: 18px;
+        padding: 13px 15px;
+        color: #707786;
+        font-weight: 900;
+      }
+
+      .side a.active, .side a:hover {
+        background: var(--blue);
+        color: #fff;
+      }
+
+      .panel {
+        border-radius: 34px;
+        background: #fff;
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+        padding: 28px;
+      }
+
+      .panel h2 {
+        margin: 0 0 12px;
+        font-size: clamp(2.2rem, 4vw, 4.6rem);
+        letter-spacing: -0.045em;
+        line-height: 0.98;
+      }
+
+      .grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
+        gap: 16px;
+        margin-top: 24px;
       }
-      .opp {
-        border: 1px solid #d9e0ea;
-        border-radius: 12px;
-        padding: 12px;
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 28px;
         background: #fff;
+        padding: 22px;
+        box-shadow: 0 18px 40px rgba(60, 80, 150, 0.08);
       }
-      .opp h4 { margin: 0 0 4px; font-size: 1.05rem; }
-      .mini { color: var(--muted); font-size: 0.9rem; }
-      .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-      .flow {
-        margin-top: 10px;
-        border: 1px dashed #b9c5d8;
-        border-radius: 12px;
-        padding: 14px;
-        background: #f8fbff;
+
+      .card.blue {
+        background: var(--blue);
+        color: #fff;
       }
-      .metrics {
+
+      .card.soft {
+        background: #f6f8ff;
+      }
+
+      .k {
+        color: var(--muted);
+        font-weight: 900;
+        font-size: 0.86rem;
+      }
+
+      .card.blue .k {
+        color: #dce4ff;
+      }
+
+      .v {
+        display: block;
+        margin-top: 8px;
+        font-size: 2rem;
+        font-weight: 1000;
+        letter-spacing: -0.03em;
+      }
+
+      .chat {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 10px;
+        gap: 14px;
+        margin-top: 20px;
+        max-height: 520px;
+        overflow: auto;
       }
-      .metric {
-        border: 1px solid #dbe2ec;
-        border-radius: 12px;
-        padding: 12px;
+
+      .bubble {
+        border-radius: 28px;
+        background: #f6f8ff;
+        padding: 18px 20px;
+        font-weight: 750;
       }
-      .metric .k { color: #66707f; font-size: 0.82rem; }
-      .metric .v { font-weight: 800; font-size: 1.7rem; }
+
+      .bubble.user {
+        justify-self: end;
+        max-width: 72%;
+        background: var(--blue);
+        color: #fff;
+      }
+
+      .composer {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .composer input, .field, textarea {
+        min-width: 0;
+        border: 2px solid var(--line);
+        border-radius: 22px;
+        background: #fff;
+        padding: 16px 18px;
+        outline: none;
+        font-weight: 800;
+      }
+
       .table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 10px;
+        margin-top: 18px;
+        overflow: hidden;
       }
+
       .table th, .table td {
-        border-bottom: 1px solid #e3e7ef;
-        padding: 10px 8px;
+        border-bottom: 1px solid var(--line);
+        padding: 14px 10px;
         text-align: left;
       }
-      .panel {
-        border-left: 1px solid var(--line);
-        background: #f9f8f4;
-        padding: 18px 14px;
+
+      .status-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 16px;
       }
-      .ctx {
-        border: 1px solid #dde3ec;
-        border-radius: 12px;
-        background: #fff;
-        padding: 12px;
-        margin-bottom: 10px;
+
+      .step {
+        display: grid;
+        grid-template-columns: 34px 1fr auto;
+        align-items: center;
+        gap: 12px;
+        border-radius: 20px;
+        background: #f6f8ff;
+        padding: 13px;
+        font-weight: 900;
       }
-      .ctx h4 { margin: 0 0 8px; }
-      .stat { display: flex; justify-content: space-between; margin: 7px 0; font-size: 0.95rem; }
-      .agent {
-        border: 1px solid #dae2ee;
-        border-radius: 10px;
-        padding: 8px;
-        margin-top: 7px;
-        background: #f9fbff;
-        font-size: 0.9rem;
+
+      .check {
+        width: 28px;
+        height: 28px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--green);
+        color: #fff;
       }
-      .ok { color: #1d9f57; font-weight: 700; }
-      .chip {
-        padding: 5px 8px;
-        border-radius: 999px;
-        border: 1px solid #dce2ee;
-        background: #fff;
-        font-size: 0.82rem;
+
+      .warn {
+        background: var(--yellow);
+        color: #111;
       }
-      .badge-green { background: #e5f8e6; border-color: #bde7c0; }
-      .badge-yellow { background: #fff5d3; border-color: #f4df95; }
-      @media (max-width: 1280px) {
-        .shell { grid-template-columns: 250px minmax(0, 1fr); }
-        .panel { display: none; }
+
+      .footer-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 28px;
       }
-      @media (max-width: 900px) {
-        .shell { grid-template-columns: 1fr; }
-        .sidebar { border-right: 0; border-bottom: 1px solid var(--line); }
-        .prompt-grid, .card-grid, .metrics { grid-template-columns: 1fr; }
+
+      .toast {
+        position: fixed;
+        right: 22px;
+        bottom: 22px;
+        z-index: 20;
+        display: none;
+        border-radius: 24px;
+        background: #11131a;
+        color: #fff;
+        padding: 16px 18px;
+        font-weight: 900;
+        box-shadow: 0 22px 50px rgba(0,0,0,0.25);
+      }
+
+      .toast.show {
+        display: block;
+        animation: pop 380ms cubic-bezier(0.2, 1.3, 0.24, 1);
+      }
+
+      @keyframes jump {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-12px); }
+      }
+
+      @keyframes floatLeft {
+        0%, 100% { transform: rotate(-30deg) translateY(0); }
+        50% { transform: rotate(-27deg) translateY(-16px); }
+      }
+
+      @keyframes floatRight {
+        0%, 100% { transform: rotate(28deg) translateY(0); }
+        50% { transform: rotate(25deg) translateY(14px); }
+      }
+
+      @keyframes pop {
+        from { opacity: 0; transform: translateY(18px) scale(0.96); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      @media (max-width: 1120px) {
+        .nav { padding: 24px; grid-template-columns: 1fr auto; }
+        .links { display: none; }
+        .hero { grid-template-columns: 1fr; padding: 36px 28px; }
+        .blue-planet { right: -540px; }
+        .phones { min-height: 520px; }
+        .phone { width: 310px; height: 540px; }
+        .workspace { grid-template-columns: 1fr; }
+        .side { display: flex; overflow: auto; gap: 8px; }
+        .side a { white-space: nowrap; }
+        .grid { grid-template-columns: 1fr 1fr; }
+      }
+
+      @media (max-width: 720px) {
+        .stage { padding: 8px; }
+        .app { min-height: calc(100vh - 16px); border-radius: 24px; }
+        .blue-planet { display: none; }
+        .top-actions .secondary { display: none; }
+        h1 { font-size: 3.8rem; }
+        .hero { padding: 26px 18px; }
+        .route-screen { padding: 18px; }
+        .grid { grid-template-columns: 1fr; }
+        .phone.two { display: none; }
+        .phone.one { left: 15%; top: 28px; width: 280px; height: 505px; }
+        .composer { grid-template-columns: 1fr; }
       }
     </style>
   </head>
   <body>
-    <div class="shell">
-      <aside class="sidebar">
-        <h1 class="brand">Pielot<span class="dot">.</span></h1>
-        <button class="btn black" id="newChatBtn">+ New Chat</button>
-        <p class="nav-title">Workspace</p>
-        <button class="nav-btn active" data-view="chatHome">Chat</button>
-        <button class="nav-btn" data-view="experiments">Experiments</button>
-        <button class="nav-btn" data-view="campaigns">Campaigns</button>
-        <button class="nav-btn" data-view="customers">Customers</button>
-        <button class="nav-btn" data-view="segments">Segments</button>
-        <button class="nav-btn" data-view="performance">Performance</button>
-        <button class="nav-btn" data-view="compliance">Compliance</button>
-        <button class="nav-btn" data-view="settings">Settings</button>
-
-        <div class="chat-list">
-          <p class="nav-title">Recent Chats</p>
-          <button class="chat-item">Friday revenue ideas</button>
-          <button class="chat-item">Win-back campaign</button>
-          <button class="chat-item">Game night bundle</button>
-          <button class="chat-item">Slow lunch hours</button>
-          <button class="chat-item">Coupon experiment</button>
-        </div>
-      </aside>
-
-      <main class="center">
-        <div class="topbar">
-          <div><strong>Pielot Revenue Agent</strong> <span class="mini">Chat-first revenue copilot</span></div>
-          <div class="actions">
-            <button class="btn" id="launchAgentTop">Launch Agent</button>
-            <button class="btn blue" id="runScanTop">Run New Scan</button>
+    <div class="stage">
+      <div class="app">
+        <div class="blue-planet"></div>
+        <nav class="nav">
+          <a class="logo" href="/">Pielot.</a>
+          <div class="links">
+            <a href="/dashboard" data-nav>About</a>
+            <a href="/agent" data-nav>Solutions⌄</a>
+            <a href="/campaigns" data-nav>Resources</a>
           </div>
-        </div>
-
-        <section class="view" id="chatHome">
-          <h2 class="hero-title">What revenue opportunity should we find today?</h2>
-          <p class="sub">Talk to Pielot like ChatGPT. It can analyze customers, draft campaigns, run experiments, and ask for approval before sending.</p>
-          <div class="prompt-grid">
-            <button class="prompt">Find customers likely to order tonight</button>
-            <button class="prompt">Create a win-back SMS campaign</button>
-            <button class="prompt">Run an offer experiment</button>
-            <button class="prompt">Fill slow hours this week</button>
-            <button class="prompt">Increase repeat orders</button>
-            <button class="prompt">Analyze last campaign</button>
+          <div class="top-actions">
+            <a class="secondary" href="/auth">Get started</a>
           </div>
-          <div class="composer">
-            <input id="chatInput" placeholder="Ask Pielot anything about your restaurant revenue..." />
-            <button class="btn black" id="sendMsgBtn">Send</button>
-          </div>
+        </nav>
 
-          <div class="messages" id="messages"></div>
-
-          <div class="flow hidden" id="scanFlow">
-            <strong>AI Revenue Scan in progress...</strong>
-            <ul>
-              <li>Reading order history</li>
-              <li>Finding lapsed customers</li>
-              <li>Matching offers to behavior</li>
-              <li>Checking compliance</li>
-              <li>Ranking opportunities</li>
-            </ul>
+        <section class="hero" id="landing">
+          <div>
+            <h1>
+              <span class="hero-mark">))</span>Turn <span class="inline-photo" aria-hidden="true"></span> slow days
+              into <span class="inline-dot yellow" aria-hidden="true"></span><span class="inline-dot blue" aria-hidden="true">△</span>
+              live SMS <span class="inline-face" aria-hidden="true"></span> revenue.
+            </h1>
+            <p class="copy">
+              Pielot is the AI revenue agent for restaurants. Find at-risk windows, write margin-safe SMS campaigns, and deploy live — all from one chat.
+            </p>
+            <div class="built-for">Built for <span>Restaurants</span></div>
+            <div class="stat-card">
+              <small>Projected revenue this week</small>
+              <span class="big-number">$3 240</span>
+              <div class="mini-note">
+                <span>+28%</span>
+                <strong>from 412 customers</strong>
+              </div>
+            </div>
           </div>
-        </section>
-
-        <section class="view hidden" id="experiments">
-          <h2>Experiments</h2>
-          <p class="sub">Test offers, timing, audience, and message tone.</p>
-          <div class="card-grid">
-            <div class="opp"><h4>Offer Test</h4><p class="mini">Free garlic knots vs 20% off</p><button class="btn" data-exp="offer">Create</button></div>
-            <div class="opp"><h4>Timing Test</h4><p class="mini">4 PM vs 6 PM send</p><button class="btn" data-exp="timing">Create</button></div>
-            <div class="opp"><h4>Tone Test</h4><p class="mini">Playful vs direct</p><button class="btn" data-exp="tone">Create</button></div>
-          </div>
-          <div class="flow" id="expBuilder">
-            <h3 style="margin-top:0">Experiment Builder</h3>
-            <p class="mini">Say: "Test garlic knots vs 20% off."</p>
-            <div id="expCard" class="hidden">
-              <p><strong>Experiment:</strong> Garlic Knots vs 20% Off</p>
-              <p>Audience: 200 opted-in lapsed customers, split 50/50, duration 48h.</p>
-              <p>Primary metric: Revenue per recipient.</p>
-              <div class="row">
-                <button class="btn black" id="approveExperimentBtn">Approve Experiment</button>
-                <button class="btn">Edit Variants</button>
-                <button class="btn">Change Audience</button>
+          <div class="hero-fade"></div>
+          <div class="phones" aria-hidden="true">
+            <div class="phone one">
+              <div class="phone-inner">
+                <strong>Hello, Pleasure Pizza</strong>
+                <h2>You've got 6 revenue tasks today</h2>
+                <div class="task-card">
+                  <strong>Complete win-back campaign</strong>
+                  <div class="task-row"><span class="radio"></span><span>Validate opted-in audience</span><span>OK</span></div>
+                  <div class="task-row"><span class="radio"></span><span>Approve $5 off $30+ SMS</span><span>1:15</span></div>
+                  <div class="task-row"><span class="radio"></span><span>Schedule Tuesday slow window</span><span class="task-pill">New</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="phone two">
+              <div class="phone-inner">
+                <strong>today</strong>
+                <div class="task-card">
+                  <strong>Tuesday comeback</strong>
+                  <p>412 customers · $3,240 projected</p>
+                  <span class="task-pill">Ready</span>
+                </div>
+                <div class="task-card">
+                  <strong>Game night bundle</strong>
+                  <p>128 customers · $1,760 projected</p>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section class="view hidden" id="campaigns">
-          <h2>Campaign Draft + Approval</h2>
-          <p class="sub">Review, edit, and send with compliance checks.</p>
-          <div class="metrics">
-            <div class="metric"><div class="k">Projected Revenue</div><div class="v">$18,540</div></div>
-            <div class="metric"><div class="k">Audience</div><div class="v">2,124</div></div>
-            <div class="metric"><div class="k">Send Time</div><div class="v">4:30 PM</div></div>
-            <div class="metric"><div class="k">Confidence</div><div class="v">High</div></div>
-          </div>
-          <div class="flow">
-            <h3 style="margin-top:0">Win-back Pizza Lovers</h3>
-            <p>Message: "Hey Sarah! We miss you at Tony's Pizza. Here is 20% off your next order. Reply STOP to opt out."</p>
-            <p class="ok">Compliance: Opt-in only, STOP included, quiet hours respected.</p>
-            <div class="row">
-              <button class="btn black" id="approveSendBtn">Approve & Send</button>
-              <button class="btn blue" id="scheduleSendBtn">Schedule Campaign</button>
-            </div>
-          </div>
-          <div class="flow hidden" id="sentResult">
-            <h3 style="margin-top:0">Campaign Scheduled</h3>
-            <p>Status: Scheduled for today at 4:30 PM. Recipients: 2,124</p>
-            <button class="btn black" id="viewPerfBtn">View Performance</button>
+        <section class="route-screen" id="workspace">
+          <div class="workspace">
+            <aside class="side">
+              <a href="/onboarding/restaurant" data-route>Restaurant</a>
+              <a href="/onboarding/data-source" data-route>Data Source</a>
+              <a href="/onboarding/upload" data-route>Upload</a>
+              <a href="/agent/scan" data-route>Scan</a>
+              <a href="/agent" data-route>Agent Chat</a>
+              <a href="/dashboard" data-route>Dashboard</a>
+              <a href="/opportunities/opp_tuesday" data-route>Opportunity</a>
+              <a href="/campaigns" data-route>Campaigns</a>
+              <a href="/campaigns/camp_tuesday_comeback" data-route>Performance</a>
+              <a href="/compliance" data-route>Compliance</a>
+              <a href="/settings" data-route>Settings</a>
+            </aside>
+            <main class="panel" id="screen"></main>
           </div>
         </section>
-
-        <section class="view hidden" id="customers">
-          <h2>Customers</h2>
-          <p class="sub">Customer behavior and targeting context.</p>
-          <table class="table">
-            <thead><tr><th>Name</th><th>Opt-in</th><th>Last Order</th><th>Total Spend</th><th>Segment</th></tr></thead>
-            <tbody>
-              <tr><td>Sarah J.</td><td class="ok">Yes</td><td>36 days ago</td><td>$342</td><td>Lapsed 30+</td></tr>
-              <tr><td>Mike C.</td><td class="ok">Yes</td><td>12 days ago</td><td>$186</td><td>Friday Regular</td></tr>
-              <tr><td>Alicia G.</td><td class="ok">Yes</td><td>6 days ago</td><td>$512</td><td>High Value</td></tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section class="view hidden" id="segments">
-          <h2>Segments</h2>
-          <div class="card-grid">
-            <div class="opp"><h4>Lapsed Customers</h4><p class="mini">6,284 customers · High potential</p></div>
-            <div class="opp"><h4>Friday Regulars</h4><p class="mini">2,876 customers · Medium-high</p></div>
-            <div class="opp"><h4>Coupon Lovers</h4><p class="mini">1,941 customers · Medium</p></div>
-          </div>
-        </section>
-
-        <section class="view hidden" id="performance">
-          <h2>Campaign Performance</h2>
-          <p class="sub">Post-send proof of value and follow-up recommendations.</p>
-          <div class="metrics">
-            <div class="metric"><div class="k">Revenue Generated</div><div class="v">$18,540</div></div>
-            <div class="metric"><div class="k">Orders</div><div class="v">1,246</div></div>
-            <div class="metric"><div class="k">Delivery Rate</div><div class="v">98.2%</div></div>
-            <div class="metric"><div class="k">Opt-out Rate</div><div class="v">0.42%</div></div>
-          </div>
-          <div class="flow">
-            <h3 style="margin-top:0">AI Insights</h3>
-            <ul>
-              <li>Garlic knots offers generated 53% more revenue than percentage discounts.</li>
-              <li>Weekend sends drove 34% higher engagement.</li>
-              <li>Run follow-up in 10-14 days to convert non-buyers.</li>
-            </ul>
-            <button class="btn black">Create Follow-up Campaign</button>
-          </div>
-        </section>
-
-        <section class="view hidden" id="compliance">
-          <h2>Compliance</h2>
-          <p class="sub">Safety guardrails and logs.</p>
-          <div class="flow">
-            <div class="row">
-              <span class="chip badge-green">Opted-in: 9,284</span>
-              <span class="chip">Opted-out: 347</span>
-              <span class="chip">Missing consent: 96</span>
-              <span class="chip badge-yellow">Frequency cap: 2 / 7d</span>
-            </div>
-            <ul>
-              <li class="ok">STOP handling active</li>
-              <li class="ok">Quiet hours: 9 PM - 9 AM</li>
-              <li class="ok">Approval required before send</li>
-            </ul>
-          </div>
-        </section>
-
-        <section class="view hidden" id="settings">
-          <h2>Settings</h2>
-          <p class="sub">Restaurant, offers, and integrations.</p>
-          <div class="flow">
-            <div class="row">
-              <span class="chip">Restaurant: Tony's Pizza</span>
-              <span class="chip">Tone: Friendly</span>
-              <span class="chip">Max discount: 20%</span>
-              <span class="chip">Integrations: Toast, Google Sheets</span>
-            </div>
-            <div class="row">
-              <button class="btn black">Save Settings</button>
-              <button class="btn">Manage Team</button>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <aside class="panel">
-        <div class="ctx">
-          <h4>Restaurant Context</h4>
-          <div class="stat"><span>Restaurant</span><strong>Tony's Pizza</strong></div>
-          <div class="stat"><span>Customers analyzed</span><strong>12,640</strong></div>
-          <div class="stat"><span>Opted-in</span><strong>9,284</strong></div>
-          <div class="stat"><span>Campaigns ready</span><strong>8</strong></div>
-          <div class="stat"><span>Projected revenue</span><strong>$24,780</strong></div>
-          <div class="stat"><span>Current goal</span><strong>Bring back customers</strong></div>
-          <div class="stat"><span>Compliance</span><strong class="ok">Safe to send</strong></div>
-        </div>
-        <div class="ctx">
-          <h4>Active Agents</h4>
-          <div class="agent">Segmentation Agent</div>
-          <div class="agent">Opportunity Agent</div>
-          <div class="agent">Offer Agent</div>
-          <div class="agent">SMS Agent</div>
-          <div class="agent">Experiment Agent</div>
-          <div class="agent">Compliance Agent</div>
-          <div class="agent">Execution Agent</div>
-        </div>
-      </aside>
+      </div>
     </div>
+    <div class="toast" id="toast"></div>
 
     <script>
-      const navButtons = [...document.querySelectorAll(".nav-btn")];
-      const views = [...document.querySelectorAll(".view")];
-      const messages = document.getElementById("messages");
-      const scanFlow = document.getElementById("scanFlow");
-      const expCard = document.getElementById("expCard");
-      const sentResult = document.getElementById("sentResult");
+      const data = {
+        restaurant: "Pleasure Pizza",
+        customers: 412,
+        optedIn: 389,
+        projected: "$3,240",
+        campaign: "Tuesday Comeback Offer",
+        sms: "Hey, we miss you. Get $5 off your order of $30+ today from 2-6 PM. Perfect time for your weekday pizza fix. Reply STOP to opt out.",
+      };
 
-      function switchView(id) {
-        navButtons.forEach((b) => b.classList.toggle("active", b.dataset.view === id));
-        views.forEach((v) => v.classList.toggle("hidden", v.id !== id));
+      const routes = {
+        "/auth": authScreen,
+        "/onboarding/restaurant": restaurantScreen,
+        "/onboarding/data-source": dataSourceScreen,
+        "/onboarding/upload": uploadScreen,
+        "/agent/scan": scanScreen,
+        "/agent": agentScreen,
+        "/dashboard": dashboardScreen,
+        "/opportunities/opp_tuesday": opportunityScreen,
+        "/campaigns": campaignsScreen,
+        "/campaigns/camp_tuesday_comeback": performanceScreen,
+        "/compliance": complianceScreen,
+        "/settings": settingsScreen,
+      };
+
+      const landing = document.getElementById("landing");
+      const workspace = document.getElementById("workspace");
+      const screen = document.getElementById("screen");
+      const toast = document.getElementById("toast");
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2600);
       }
 
-      navButtons.forEach((b) => b.addEventListener("click", () => switchView(b.dataset.view)));
-
-      function addMessage(userText) {
-        const user = document.createElement("div");
-        user.className = "msg user";
-        user.innerHTML = `<strong>You:</strong> ${userText}`;
-        messages.appendChild(user);
-
-        const ai = document.createElement("div");
-        ai.className = "msg";
-        ai.innerHTML = `
-          <strong>Pielot:</strong> I found 3 high-value opportunities for today.
-          <div class="card-grid">
-            <div class="opp">
-              <h4>Win Back Lapsed Customers</h4>
-              <div class="mini">Audience: 143 · Projected: $1,120 · Confidence: High</div>
-              <div class="row"><button class="btn black make-campaign">Create Campaign</button></div>
-            </div>
-            <div class="opp">
-              <h4>Game Night Bundle</h4>
-              <div class="mini">Audience: 96 · Projected: $820 · Confidence: High</div>
-              <div class="row"><button class="btn make-campaign">Create Campaign</button></div>
-            </div>
-            <div class="opp">
-              <h4>Family Friday Deal</h4>
-              <div class="mini">Audience: 128 · Projected: $640 · Confidence: Medium</div>
-              <div class="row"><button class="btn make-campaign">Create Campaign</button></div>
-            </div>
-          </div>
-          <div class="row">
-            <button class="btn black draft-best">Draft Best Campaign</button>
-            <button class="btn open-experiments">Create Experiment</button>
-            <button class="btn">Show More</button>
-            <button class="btn">Explain Why</button>
-          </div>
-        `;
-        messages.appendChild(ai);
-        messages.scrollTop = messages.scrollHeight;
+      function card(label, value, cls = "") {
+        return `<div class="card ${cls}"><span class="k">${label}</span><span class="v">${value}</span></div>`;
       }
 
-      document.getElementById("sendMsgBtn").addEventListener("click", () => {
+      function layout(title, copy, body) {
+        return `<h2>${title}</h2><p class="copy">${copy}</p>${body}`;
+      }
+
+      function authScreen() {
+        return layout("Welcome back, operator.", "Login is mocked for the demo, but the product flow preserves the real handoff into restaurant setup.", `
+          <div class="grid">
+            ${card("Account", "Owner login", "blue")}
+            ${card("Workspace", data.restaurant)}
+            ${card("Next", "Restaurant setup")}
+          </div>
+          <div class="footer-nav"><a class="secondary" href="/">Back</a><a class="primary" href="/onboarding/restaurant">Continue</a></div>
+        `);
+      }
+
+      function restaurantScreen() {
+        return layout("Tell Pielot about your restaurant.", "Business context lets the agent recommend better campaigns and safer offers.", `
+          <div class="grid">
+            <input class="field" value="Pleasure Pizza" aria-label="Restaurant name" />
+            <select class="field"><option>Pizza</option><option>Burgers</option></select>
+            <input class="field" value="San Francisco, CA" aria-label="Location" />
+            <input class="field" value="$28 average order value" aria-label="Average order value" />
+            <input class="field" value="Pizza, garlic knots, wings" aria-label="Popular items" />
+            <input class="field" value="Friendly and playful" aria-label="Brand tone" />
+          </div>
+          <div class="footer-nav"><a class="secondary" href="/auth">Back</a><a class="primary" href="/onboarding/data-source">Continue</a></div>
+        `);
+      }
+
+      function dataSourceScreen() {
+        return layout("Connect customer data.", "Choose a source. CSV is live in this build; POS providers are represented as ready integration slots.", `
+          <div class="grid">
+            ${card("Upload CSV", "Selected", "blue")}
+            ${card("Google Sheets", "Connect")}
+            ${card("Toast", "Coming next")}
+            ${card("Square", "Coming next")}
+            ${card("Demo Data", "412 customers")}
+            ${card("Consent Fields", "Required")}
+          </div>
+          <div class="footer-nav"><a class="secondary" href="/onboarding/restaurant">Back</a><a class="primary" href="/onboarding/upload">Upload CSV</a></div>
+        `);
+      }
+
+      function uploadScreen() {
+        return layout("Validate customer consent.", "The demo uses seeded CSV-like data and still shows the real validation requirements: phone normalization, opt-in filtering, dedupe, and required fields.", `
+          <div class="grid">
+            ${card("Records parsed", "412", "blue")}
+            ${card("Opted in", "389")}
+            ${card("Deduped", "17")}
+            ${card("Missing consent", "23")}
+            ${card("Phone format", "Normalized")}
+            ${card("Ready", "Revenue scan")}
+          </div>
+          <table class="table">
+            <thead><tr><th>Name</th><th>Phone</th><th>Opt-in</th><th>Last Order</th><th>Spend</th></tr></thead>
+            <tbody><tr><td>Sarah Johnson</td><td>(415) 555-0199</td><td>Yes</td><td>36 days ago</td><td>$342</td></tr><tr><td>Mike Chen</td><td>(415) 555-0123</td><td>Yes</td><td>17 days ago</td><td>$186</td></tr><tr><td>David Patel</td><td>(415) 555-0144</td><td>No</td><td>45 days ago</td><td>$67</td></tr></tbody>
+          </table>
+          <div class="footer-nav"><a class="secondary" href="/onboarding/data-source">Back</a><button class="primary" data-workflow="csv_validation">Validate Data</button></div>
+        `);
+      }
+
+      function scanScreen() {
+        return layout("Pielot is scanning for money.", "Workflow state is backed by the server and exposes workflow id, steps, status, progress, timestamps, errors, and output card id.", `
+          <div class="grid">
+            ${card("Workflow", "Revenue scan", "blue")}
+            ${card("Current step", "Segment customers")}
+            ${card("Progress", "0%")}
+          </div>
+          <div class="status-list" id="workflowSteps"></div>
+          <div class="footer-nav"><a class="secondary" href="/onboarding/upload">Back</a><button class="primary" data-workflow="revenue_scan">Run Scan</button></div>
+        `);
+      }
+
+      function agentScreen() {
+        return layout("Ask Pielot what to launch.", "The chat calls the MiniMax-compatible backend endpoint with safe deterministic fallback when provider access fails.", `
+          <div class="chat" id="chat"><div class="bubble"><strong>Pielot</strong><br />I found 6 opportunities and 3 campaigns ready. Ask me why Tuesdays are slow or tell me to create the comeback campaign.</div></div>
+          <div class="composer"><input id="chatInput" value="Find me a way to make more money this week." /><button class="primary" id="sendChat">Send</button></div>
+        `);
+      }
+
+      function dashboardScreen() {
+        return layout("Revenue opportunities.", "The dashboard answers where the money is, who to message, why it works, and whether it is safe.", `
+          <div class="grid">
+            ${card("Projected revenue", "$24,780", "blue")}
+            ${card("Customers analyzed", "12,640")}
+            ${card("Campaigns ready", "3")}
+            ${card("Opted-in customers", "9,284")}
+            ${card("Top opportunity", "Tuesday slow window")}
+            ${card("Compliance", "Safe")}
+          </div>
+          <div class="footer-nav"><a class="secondary" href="/agent">Ask agent</a><a class="primary" href="/opportunities/opp_tuesday">Review opportunity</a></div>
+        `);
+      }
+
+      function opportunityScreen() {
+        return layout("Tuesday slow window.", "Pielot found a 24% demand gap from 2-6 PM and recommends a comeback SMS before lunch.", `
+          <div class="grid">
+            ${card("Demand gap", "-24%", "blue")}
+            ${card("Audience", "412 at-risk customers")}
+            ${card("Expected revenue", "$3,650 without campaign")}
+            ${card("Recommended offer", "$5 off $30+")}
+            ${card("Profit estimate", "$730")}
+            ${card("Confidence", "86%")}
+          </div>
+          <div class="footer-nav"><a class="secondary" href="/dashboard">Back</a><button class="primary" data-workflow="campaign_draft">Create Campaign</button></div>
+        `);
+      }
+
+      function campaignsScreen() {
+        return layout("Approve SMS campaign.", "Human approval is required before any send. Compliance checks are visible before scheduling.", `
+          <div class="grid">
+            ${card("Campaign", data.campaign, "blue")}
+            ${card("Audience", "389 opted-in")}
+            ${card("Projected revenue", data.projected)}
+          </div>
+          <div class="card soft" style="margin-top:20px"><strong>SMS Preview</strong><p>${data.sms}</p></div>
+          <div class="status-list">
+            <div class="step"><span class="check">✓</span><span>Opt-in customers only</span><strong>Passed</strong></div>
+            <div class="step"><span class="check">✓</span><span>STOP language included</span><strong>Passed</strong></div>
+            <div class="step"><span class="check">✓</span><span>Quiet hours respected</span><strong>Passed</strong></div>
+            <div class="step"><span class="check warn">!</span><span>Human approval required</span><strong>Ready</strong></div>
+          </div>
+          <div class="footer-nav"><a class="secondary" href="/opportunities/opp_tuesday">Back</a><button class="primary" id="approveCampaign">Approve & Schedule</button></div>
+        `);
+      }
+
+      function performanceScreen() {
+        return layout("Campaign performance.", "Before send, metrics stay at zero. After provider events, delivery, revenue, orders, and opt-outs update here.", `
+          <div class="grid">
+            ${card("Status", "Scheduled", "blue")}
+            ${card("Texts", "389")}
+            ${card("Revenue", "$0 before send")}
+            ${card("Delivery rate", "0%")}
+            ${card("Orders", "0")}
+            ${card("Opt-outs", "0")}
+          </div>
+          <div class="card soft" style="margin-top:20px"><strong>Timeline</strong><p>Approved -> Scheduled -> Provider send -> Webhook delivery -> Revenue attribution.</p></div>
+        `);
+      }
+
+      function complianceScreen() {
+        return layout("Compliance center.", "Pielot applies consent, STOP handling, quiet hours, frequency caps, human approval, and audit logs.", `
+          <div class="status-list">
+            <div class="step"><span class="check">✓</span><span>Max 2 marketing texts per customer per week</span><strong>Active</strong></div>
+            <div class="step"><span class="check">✓</span><span>No sends before 9 AM or after 8 PM local time</span><strong>Active</strong></div>
+            <div class="step"><span class="check">✓</span><span>STOP and opt-out webhook processing</span><strong>Active</strong></div>
+            <div class="step"><span class="check">✓</span><span>Approval and audit log before send</span><strong>Active</strong></div>
+          </div>
+        `);
+      }
+
+      function settingsScreen() {
+        return layout("Settings.", "Configure restaurant profile, SMS provider, caps, and default offer guardrails.", `
+          <div class="grid">
+            <input class="field" value="Twilio-ready SMS provider" />
+            <input class="field" value="Max discount 20%" />
+            <input class="field" value="Frequency cap 2/week" />
+            <input class="field" value="Quiet hours 8 PM - 9 AM" />
+            <input class="field" value="Human approval required" />
+            <button class="primary" onclick="window.pielotToast('Settings saved')">Save Settings</button>
+          </div>
+        `);
+      }
+
+      async function startWorkflow(type) {
+        const response = await fetch("/api/workflows", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workflow_type: type }),
+        });
+        const run = await response.json();
+        showToast(`${run.workflow_type} started`);
+        if (type === "csv_validation") navigate("/agent/scan");
+        if (type === "campaign_draft") navigate("/campaigns");
+        pollWorkflow(run.workflow_id);
+      }
+
+      async function pollWorkflow(id) {
+        const holder = document.getElementById("workflowSteps");
+        if (!holder) return;
+        const response = await fetch(`/api/workflows/${id}`);
+        const run = await response.json();
+        holder.innerHTML = run.steps.map((step) => `<div class="step"><span class="check">${step.status === "complete" ? "✓" : step.status === "running" ? "..." : ""}</span><span>${step.name}</span><strong>${step.status}</strong></div>`).join("");
+        if (run.status !== "complete") setTimeout(() => pollWorkflow(id), 700);
+        else showToast(`Workflow complete: ${run.output_card_id}`);
+      }
+
+      async function sendChat() {
         const input = document.getElementById("chatInput");
-        const text = input.value.trim();
-        if (!text) return;
-        addMessage(text);
+        const chat = document.getElementById("chat");
+        if (!input || !chat || !input.value.trim()) return;
+        const message = input.value.trim();
+        chat.insertAdjacentHTML("beforeend", `<div class="bubble user">${message}</div>`);
         input.value = "";
-      });
-
-      document.querySelectorAll(".prompt").forEach((p) =>
-        p.addEventListener("click", () => addMessage(p.textContent))
-      );
-
-      document.getElementById("newChatBtn").addEventListener("click", () => {
-        switchView("chatHome");
-        messages.innerHTML = "";
-      });
-
-      document.getElementById("runScanTop").addEventListener("click", () => {
-        switchView("chatHome");
-        scanFlow.classList.remove("hidden");
-        setTimeout(() => {
-          scanFlow.classList.add("hidden");
-          addMessage("What can I do today to increase revenue?");
-        }, 1300);
-      });
-
-      document.addEventListener("click", (e) => {
-        if (e.target.classList.contains("open-experiments")) {
-          switchView("experiments");
-        }
-        if (e.target.classList.contains("draft-best") || e.target.classList.contains("make-campaign")) {
-          switchView("campaigns");
-        }
-      });
-
-      document.querySelectorAll("[data-exp]").forEach((btn) =>
-        btn.addEventListener("click", () => {
-          expCard.classList.remove("hidden");
-          expCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        })
-      );
-
-      document.getElementById("approveExperimentBtn").addEventListener("click", () => {
-        switchView("campaigns");
-      });
-
-      function markSent(statusLabel) {
-        sentResult.classList.remove("hidden");
-        sentResult.querySelector("p").textContent =
-          statusLabel === "scheduled"
-            ? "Status: Scheduled for today at 4:30 PM. Recipients: 2,124"
-            : "Status: Sending now. Recipients: 2,124";
-        sentResult.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        const response = await fetch("/api/demo-chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message }),
+        });
+        const data = await response.json();
+        chat.insertAdjacentHTML("beforeend", `<div class="bubble"><strong>Pielot</strong><br />${data.text}<div class="footer-nav"><a class="secondary" href="/opportunities/opp_tuesday">Explain</a><a class="primary" href="/campaigns">Create campaign</a></div></div>`);
+        chat.scrollTop = chat.scrollHeight;
       }
-      document.getElementById("approveSendBtn").addEventListener("click", () => markSent("sending"));
-      document.getElementById("scheduleSendBtn").addEventListener("click", () => markSent("scheduled"));
-      document.getElementById("viewPerfBtn").addEventListener("click", () => switchView("performance"));
 
-      document.getElementById("launchAgentTop").addEventListener("click", () => {
-        switchView("chatHome");
-        document.getElementById("chatInput").focus();
+      async function approveCampaign() {
+        const response = await fetch("/api/campaigns/camp_tuesday_comeback/approve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ scheduled: true }),
+        });
+        const data = await response.json();
+        showToast(`${data.name} ${data.status.toLowerCase()}`);
+        navigate("/campaigns/camp_tuesday_comeback");
+      }
+
+      function navigate(path) {
+        history.pushState({}, "", path);
+        render();
+      }
+
+      function render() {
+        const path = window.location.pathname;
+        const fn = routes[path] || routes[path.replace(/\/$/, "")];
+        document.querySelectorAll("[data-nav], [data-route]").forEach((a) => a.classList.toggle("active", a.getAttribute("href") === path));
+        if (!fn) {
+          landing.style.display = "grid";
+          workspace.classList.remove("active");
+          return;
+        }
+        landing.style.display = "none";
+        workspace.classList.add("active");
+        screen.innerHTML = fn();
+        const send = document.getElementById("sendChat");
+        if (send) send.addEventListener("click", sendChat);
+        const approve = document.getElementById("approveCampaign");
+        if (approve) approve.addEventListener("click", approveCampaign);
+      }
+
+      document.addEventListener("click", (event) => {
+        const link = event.target.closest("a[href]");
+        if (link && link.origin === location.origin) {
+          event.preventDefault();
+          navigate(link.pathname);
+        }
+        const workflow = event.target.dataset.workflow;
+        if (workflow) startWorkflow(workflow);
       });
+
+      document.getElementById("quickScan")?.addEventListener("click", () => navigate("/agent/scan"));
+      window.addEventListener("popstate", render);
+      window.pielotToast = showToast;
+      render();
     </script>
   </body>
 </html>
