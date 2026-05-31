@@ -80,6 +80,10 @@
         padding: 54px 72px 20px;
       }
 
+      .workspace-mode .nav {
+        display: none;
+      }
+
       .logo {
         display: inline-flex;
         align-items: center;
@@ -756,7 +760,7 @@
         position: relative;
         z-index: 2;
         display: none;
-        padding: 30px 72px 70px;
+        padding: 22px;
       }
 
       .route-screen.active {
@@ -772,6 +776,7 @@
         background: #fffaf0;
         overflow: hidden;
         box-shadow: 0 24px 0 -12px #17120e;
+        min-height: calc(100vh - 88px);
       }
 
       .side {
@@ -779,6 +784,14 @@
         background: #100d0a;
         padding: 22px;
         border-right: 2px solid #17120e;
+      }
+
+      .side-logo {
+        display: block;
+        width: 142px;
+        border: 1px solid #fffaf0;
+        box-shadow: 4px 4px 0 #fffaf0;
+        margin: 0 0 18px;
       }
 
       .side a {
@@ -791,6 +804,26 @@
         margin-top: 10px;
         color: #fffaf0;
         font-weight: 900;
+      }
+
+      .side-status {
+        margin-top: 22px;
+        border: 1px solid rgba(255,255,255,0.22);
+        border-radius: 18px;
+        padding: 14px;
+        color: #fffaf0;
+        font-size: 0.82rem;
+        font-weight: 850;
+        line-height: 1.6;
+      }
+
+      .side-status span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        margin-right: 8px;
       }
 
       .side a.active, .side a:hover {
@@ -807,13 +840,55 @@
         border: 0;
         box-shadow: none;
         padding: 28px;
+        min-width: 0;
       }
 
       .panel h2 {
         margin: 0 0 12px;
-        font-size: clamp(2.2rem, 4vw, 4.6rem);
+        font-size: clamp(2.5rem, 5vw, 5.8rem);
         letter-spacing: -0.045em;
         line-height: 0.98;
+      }
+
+      .status-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 18px 0 4px;
+      }
+
+      .status-pills span {
+        border: 1.5px solid #17120e;
+        border-radius: 999px;
+        background: #fffaf0;
+        color: #17120e;
+        padding: 9px 13px;
+        font-size: 0.78rem;
+        font-weight: 1000;
+      }
+
+      .suggestions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .suggestions button {
+        border: 2px solid #17120e;
+        border-radius: 20px;
+        background: #fffaf0;
+        color: #17120e;
+        padding: 14px 16px;
+        text-align: left;
+        font-weight: 900;
+        cursor: pointer;
+        transition: transform 180ms ease, box-shadow 180ms ease;
+      }
+
+      .suggestions button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 0 -6px #17120e;
       }
 
       .grid {
@@ -1161,14 +1236,23 @@
         <section class="route-screen" id="workspace">
           <div class="workspace">
             <aside class="side">
+              <a href="/" aria-label="Pielot home"><img class="side-logo" src="/public/pielot-logo.png" alt="Pielot." /></a>
               <a href="/app" data-route>Chat</a>
               <a href="/dashboard" data-route>Insights</a>
               <a href="/campaigns" data-route>Campaigns</a>
               <a href="/campaigns/camp_tuesday_comeback" data-route>Performance</a>
               <a href="/onboarding/upload" data-route>Customers</a>
+              <a href="/customers" data-route>Customer List</a>
+              <a href="/segments" data-route>Segments</a>
               <a href="/agent/scan" data-route>Autopilot</a>
               <a href="/compliance" data-route>Compliance</a>
               <a href="/settings" data-route>Settings</a>
+              <div class="side-status">
+                <div><span></span>POS data connected</div>
+                <div><span></span>SMS provider ready</div>
+                <div><span></span>Consent verified</div>
+                <div><span></span>Approval required</div>
+              </div>
             </aside>
             <main class="panel" id="screen"></main>
           </div>
@@ -1199,6 +1283,8 @@
         "/opportunities/opp_tuesday": opportunityScreen,
         "/campaigns": campaignsScreen,
         "/campaigns/camp_tuesday_comeback": performanceScreen,
+        "/customers": customersScreen,
+        "/segments": segmentsScreen,
         "/compliance": complianceScreen,
         "/settings": settingsScreen,
       };
@@ -1222,11 +1308,11 @@
       }
 
       function card(label, value, cls = "") {
-        return `<div class="card ${cls}"><span class="k">${label}</span><span class="v">${value}</span></div>`;
+        return `<div class="cloney-card ${cls}"><span class="k">${label}</span><span class="v">${value}</span></div>`;
       }
 
       function layout(title, copy, body) {
-        return `<h2>${title}</h2><p class="copy">${copy}</p>${body}`;
+        return `<h2>${title}</h2><p class="copy">${copy}</p><div class="status-pills"><span>POS data connected</span><span>SMS provider ready</span><span>Consent verified</span><span>Human approval required</span></div>${body}`;
       }
 
       function authScreen() {
@@ -1305,9 +1391,15 @@ Emily Brown,(415) 555-0102,Yes,28 days ago,6,$133.25,"Pizza, Wings"</textarea>
       }
 
       function agentScreen() {
-        return layout("Ask Pielot what to launch.", "The chat calls the MiniMax-compatible backend endpoint with safe deterministic fallback when provider access fails.", `
+        return layout("Ask Pielot what to launch.", "Chat is the main interface. Each action starts a real backend workflow, creates records, and updates campaign state.", `
+          <div class="suggestions">
+            <button type="button" data-prompt="Find me a revenue opportunity">Find me a revenue opportunity</button>
+            <button type="button" data-prompt="Create a campaign for lapsed customers">Create a campaign for lapsed customers</button>
+            <button type="button" data-prompt="Why are Tuesdays slow?">Why are Tuesdays slow?</button>
+            <button type="button" data-prompt="Show me campaign performance">Show me campaign performance</button>
+          </div>
           <div class="chat" id="chat"><div class="bubble"><strong>Pielot</strong><br />I found 6 opportunities and 3 campaigns ready. Ask me why Tuesdays are slow or tell me to create the comeback campaign.</div></div>
-          <div class="composer"><input id="chatInput" value="Find me a way to make more money this week." /><button class="primary" id="sendChat">Send</button></div>
+          <div class="composer"><input id="chatInput" placeholder="Ask Pielot to find revenue, create campaigns, or explain your customers..." value="Find me a way to make more money this week." /><button class="primary" id="sendChat">Send</button></div>
         `);
       }
 
@@ -1404,6 +1496,34 @@ Emily Brown,(415) 555-0102,Yes,28 days ago,6,$133.25,"Pizza, Wings"</textarea>
             ${card("Opt-outs", "0")}
           </div>
           <div class="card soft" style="margin-top:20px"><strong>Timeline</strong><p id="metricsTimeline">Approved -> Scheduled -> Provider send -> Webhook delivery -> Revenue attribution.</p></div>
+        `);
+      }
+
+      function customersScreen() {
+        return layout("Customers.", "Real uploaded or seeded customers are filtered by consent before any campaign can send.", `
+          <div class="fake-data-grid">
+            <div class="cloney-card"><h3>Customer database</h3><div class="customer-list" id="routeCustomers"></div></div>
+            <div class="cloney-card"><h3>Customer profile</h3><p id="routeCustomerDetail">Select a customer to inspect consent, spend, segment, and recommended offer.</p></div>
+          </div>
+          <div class="footer-nav"><a class="secondary" href="/onboarding/upload">Import CSV</a><a class="primary" href="/segments">View segments</a></div>
+        `);
+      }
+
+      function segmentsScreen() {
+        return layout("Segments.", "Pielot groups customers into revenue-relevant segments before recommending offers.", `
+          <div class="grid" id="segmentsGrid">
+            ${card("At-risk weekday regulars", "1,248")}
+            ${card("Game night buyers", "128")}
+            ${card("Family bundle buyers", "212")}
+            ${card("Lunch crowd", "156")}
+            ${card("Coupon lovers", "89")}
+            ${card("High-value regulars", "64")}
+          </div>
+          <div class="cloney-card" style="margin-top:20px">
+            <h3>Recommended segment</h3>
+            <p>At-risk weekday regulars are the best target because they previously ordered Tuesday afternoons, opted into SMS, and have a 21-45 day lapse window.</p>
+          </div>
+          <div class="footer-nav"><a class="secondary" href="/customers">Customers</a><a class="primary" href="/opportunities/opp_tuesday">Open opportunity</a></div>
         `);
       }
 
@@ -1546,11 +1666,13 @@ Emily Brown,(415) 555-0102,Yes,28 days ago,6,$133.25,"Pizza, Wings"</textarea>
         if (!fn) {
           landing.style.display = "block";
           workspace.classList.remove("active");
+          document.querySelector(".app").classList.remove("workspace-mode");
           hydrateLandingDemo();
           return;
         }
         landing.style.display = "none";
         workspace.classList.add("active");
+        document.querySelector(".app").classList.add("workspace-mode");
         screen.innerHTML = fn();
         const send = document.getElementById("sendChat");
         if (send) send.addEventListener("click", sendChat);
@@ -1560,7 +1682,17 @@ Emily Brown,(415) 555-0102,Yes,28 days ago,6,$133.25,"Pizza, Wings"</textarea>
         if (importButton) importButton.addEventListener("click", importCsv);
         const approve = document.getElementById("approveCampaign");
         if (approve) approve.addEventListener("click", approveCampaign);
+        document.querySelectorAll("[data-prompt]").forEach((button) => {
+          button.addEventListener("click", () => {
+            const input = document.getElementById("chatInput");
+            if (input) {
+              input.value = button.dataset.prompt;
+              sendChat();
+            }
+          });
+        });
         hydrateFakeApp();
+        customerButtons("routeCustomers", "routeCustomerDetail");
         hydrateMetrics();
       }
 
@@ -1620,7 +1752,13 @@ Emily Brown,(415) 555-0102,Yes,28 days ago,6,$133.25,"Pizza, Wings"</textarea>
           sms.addEventListener("click", async () => {
             const response = await fetch("/api/sms/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campaign_id: "camp_tuesday_comeback" }) });
             const data = await response.json();
-            showToast(`Fake SMS sent to ${data.recipients} customers`);
+            await fetch("/api/sms/webhook", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campaign_id: "camp_tuesday_comeback", event: "delivered", count: Math.max(0, data.recipients - 3) }) });
+            await fetch("/api/sms/webhook", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campaign_id: "camp_tuesday_comeback", event: "redeemed", count: 21, revenue: 612, profit: 244 }) });
+            const activity = document.getElementById("appActivity");
+            if (activity) {
+              activity.insertAdjacentHTML("afterbegin", `<div class="mini-row"><strong>Fake SMS results updated</strong><br />${data.recipients} sent · ${Math.max(0, data.recipients - 3)} delivered · 21 redemptions · $612 revenue.</div>`);
+            }
+            showToast(`Fake SMS sent to ${data.recipients} customers and metrics updated`);
           });
         }
       }

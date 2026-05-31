@@ -115,3 +115,39 @@
 ### Not Done Yet
 - The MiniMax token is configured through environment variables only; do not commit it to GitHub.
 - Railway should be redeployed after this commit so the public URL receives the new fake-demo UI.
+
+## Update (May 30, 2026 - PRD Route Shell Pass)
+
+### Done
+- Re-read the PRD PDFs and used the production correction doc as the active checklist.
+- Removed the old landing nav from app/workspace routes so `/app`, `/agent`, `/customers`, `/segments`, and campaign routes now feel like the Easy Cloney app shell rather than the older mixed UI.
+- Added the uploaded logo into the app sidebar, plus status indicators for:
+  - POS data connected,
+  - SMS provider ready,
+  - consent verified,
+  - approval required.
+- Added PRD route coverage for:
+  - `/customers`,
+  - `/segments`.
+- Added API coverage for:
+  - `GET /api/segments`,
+  - `GET /api/opportunities`,
+  - `GET /api/campaigns`.
+- Updated the agent chat screen with suggested prompts and the PRD placeholder.
+- Updated the fake send action so it calls real local endpoints:
+  - `/api/sms/send`,
+  - `/api/sms/webhook` delivered event,
+  - `/api/sms/webhook` redeemed event,
+  - then updates campaign metrics.
+- Verified locally:
+  - `/customers` and `/segments` return 200,
+  - `/api/segments` and `/api/opportunities` return structured JSON,
+  - MiniMax provider health returns `mode=live`,
+  - browser confirms no old top nav on app routes,
+  - browser confirms no horizontal overflow,
+  - SMS send and webhook calls update campaign metrics from zero-state to live results.
+
+### Not Done Yet
+- Full React/Vite/Tailwind rebuild remains pending; current implementation is still static HTML served by Express.
+- Durable Postgres storage remains pending; state is still file-backed.
+- Real Twilio credentials/webhook signature validation remain pending for production SMS.

@@ -243,6 +243,8 @@ const appRoutes = [
   "/opportunities/:id",
   "/campaigns",
   "/campaigns/:campaignId",
+  "/customers",
+  "/segments",
   "/compliance",
   "/settings",
 ];
@@ -357,6 +359,34 @@ app.get("/api/demo-data", (_req, res) => {
       auditLog: ["CSV validated", "Consent checked", "Human approval required"],
     },
   });
+});
+
+app.get("/api/segments", (_req, res) => {
+  const customers = readState().customers || [];
+  const optedIn = customers.filter((customer) => customer.optedIn).length;
+  res.json({
+    segments: [
+      { id: "seg_lapsed_weekday", name: "At-risk weekday regulars", size: Math.max(47, optedIn), signal: "Ordered on weekdays, inactive 21-45 days", offer: "$5 off $30+", confidence: 86 },
+      { id: "seg_game_night", name: "Game night buyers", size: 128, signal: "Orders wings or bundles Thu-Sat", offer: "Free garlic knots with large pizza", confidence: 79 },
+      { id: "seg_family", name: "Family bundle buyers", size: 212, signal: "High-ticket dinner orders", offer: "2 pizzas + wings bundle", confidence: 82 },
+      { id: "seg_lunch", name: "Lunch crowd", size: 156, signal: "Lunch orders under $18 AOV", offer: "Add a side for $2", confidence: 74 },
+    ],
+  });
+});
+
+app.get("/api/opportunities", (_req, res) => {
+  res.json({
+    opportunities: [
+      { id: "opp_tuesday", title: "Tuesday 2-6 PM slow window", segment: "At-risk weekday regulars", projected_revenue: 3240, estimated_profit: 730, confidence: 86, recommended_offer: "$5 off $30+", reason: "Revenue is 24% below baseline while opted-in weekday regulars have lapsed." },
+      { id: "opp_game", title: "Game Night Bundle", segment: "Game night buyers", projected_revenue: 1760, estimated_profit: 510, confidence: 79, recommended_offer: "Free garlic knots with large pizza", reason: "Thu-Sat buyers respond to bundle value and sides attach well." },
+      { id: "opp_lunch", title: "Lunch Side Boost", segment: "Lunch crowd", projected_revenue: 980, estimated_profit: 280, confidence: 74, recommended_offer: "Add any side for $2", reason: "Lunch AOV is low but side attach is below peer baseline." },
+    ],
+  });
+});
+
+app.get("/api/campaigns", (_req, res) => {
+  const state = readState();
+  res.json({ campaigns: state.campaigns || [demoCampaign], metrics: state.campaignMetrics || [...campaignMetrics.values()] });
 });
 
 app.post("/api/workflows", (req, res) => {
