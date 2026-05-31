@@ -3,6 +3,7 @@ import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import pg from "pg";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,8 +12,21 @@ const app = express();
 const port = Number(process.env.PORT || 8080);
 const dataDir = process.env.PIELOT_DATA_DIR || path.join("/tmp", "pielot-data");
 const statePath = path.join(dataDir, "state.json");
+const { Pool } = pg;
 
 const workflowRuns = new Map();
+const storageStatus = {
+  mode: process.env.DATABASE_URL ? "postgres" : "file",
+  connected: false,
+  last_error: null,
+  last_synced_at: null,
+};
+const pgPool = process.env.DATABASE_URL
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : undefined,
+    })
+  : null;
 
 const demoCustomers = [
   { name: "Sarah Johnson", phone: "(415) 555-0199", optedIn: true, lastOrder: "36 days ago", orders: 12, spend: 342.18, segment: "Lapsed weekday" },
@@ -96,6 +110,61 @@ function readState() {
 function writeState(nextState) {
   fs.mkdirSync(dataDir, { recursive: true });
   fs.writeFileSync(statePath, JSON.stringify(nextState, null, 2));
+  persistState(nextState);
+}
+
+async function persistState(nextState) {
+  if (!pgPool) return;
+  try {
+    await pgPool.query(
+      `insert into pielot_state (id, payload, updated_at)
+       values ($1, $2::jsonb, now())
+       on conflict (id) do update set payload = excluded.payload, updated_at = now()`,
+      ["app", JSON.stringify(nextState)],
+    );
+    storageStatus.connected = true;
+    storageStatus.last_error = null;
+    storageStatus.last_synced_at = new Date().toISOString();
+  } catch (error) {
+    storageStatus.connected = false;
+    storageStatus.last_error = String(error?.message || error).slice(0, 240);
+  }
+}
+
+async function initPersistentStore() {
+  ensureStateFile();
+  if (!pgPool) {
+    storageStatus.mode = "file";
+    storageStatus.connected = true;
+    storageStatus.last_synced_at = new Date().toISOString();
+    return;
+  }
+
+  try {
+    await pgPool.query(`
+      create table if not exists pielot_state (
+        id text primary key,
+        payload jsonb not null,
+        updated_at timestamptz not null default now()
+      )
+    `);
+    const existing = await pgPool.query("select payload, updated_at from pielot_state where id = $1", ["app"]);
+    if (existing.rows[0]?.payload) {
+      fs.mkdirSync(dataDir, { recursive: true });
+      fs.writeFileSync(statePath, JSON.stringify(existing.rows[0].payload, null, 2));
+      storageStatus.last_synced_at = existing.rows[0].updated_at?.toISOString?.() || new Date().toISOString();
+    } else {
+      await persistState(readState());
+    }
+    storageStatus.mode = "postgres";
+    storageStatus.connected = true;
+    storageStatus.last_error = null;
+    storageStatus.last_synced_at = storageStatus.last_synced_at || new Date().toISOString();
+  } catch (error) {
+    storageStatus.mode = "file_fallback";
+    storageStatus.connected = false;
+    storageStatus.last_error = String(error?.message || error).slice(0, 240);
+  }
 }
 
 function syncStateMaps() {
@@ -214,6 +283,7 @@ function validateCustomerRows(csvText) {
   };
 }
 
+await initPersistentStore();
 syncStateMaps();
 
 app.use(express.json({ limit: "1mb" }));
@@ -534,6 +604,15 @@ app.post("/api/sms/send", (req, res) => {
 
 app.get("/api/audit-log", (_req, res) => {
   res.json({ audit_log: readState().auditLog || [] });
+});
+
+app.get("/api/storage-health", (_req, res) => {
+  res.json({
+    ...storageStatus,
+    state_path: statePath,
+    postgres_configured: Boolean(process.env.DATABASE_URL),
+    table: pgPool ? "pielot_state" : null,
+  });
 });
 
 function fallbackResponse(message) {

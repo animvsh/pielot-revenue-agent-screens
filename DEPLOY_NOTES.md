@@ -151,3 +151,23 @@
 - Full React/Vite/Tailwind rebuild remains pending; current implementation is still static HTML served by Express.
 - Durable Postgres storage remains pending; state is still file-backed.
 - Real Twilio credentials/webhook signature validation remain pending for production SMS.
+
+## Update (May 30, 2026 - Optional Postgres Persistence)
+
+### Done
+- Added the `pg` package.
+- Added optional `DATABASE_URL` support in `server.js`.
+- Added startup persistence behavior:
+  - create `pielot_state` table if Postgres is configured,
+  - hydrate the file cache from Postgres when a saved state exists,
+  - seed Postgres from current/default state when empty,
+  - fall back to file storage if Postgres is missing or unavailable.
+- Added write-through persistence so every existing `writeState(...)` mutation also mirrors to Postgres.
+- Added `GET /api/storage-health` to verify whether the runtime is using:
+  - `postgres`,
+  - `file`,
+  - or `file_fallback`.
+
+### Not Done Yet
+- Railway Postgres must be provisioned and `DATABASE_URL` attached to the `web` service to switch live storage from file fallback to Postgres.
+- The data model is still a JSON document mirror; normalized relational tables for customers, campaigns, recipients, and events remain future production hardening.
