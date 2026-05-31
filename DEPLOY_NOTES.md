@@ -171,3 +171,23 @@
 ### Not Done Yet
 - Railway Postgres must be provisioned and `DATABASE_URL` attached to the `web` service to switch live storage from file fallback to Postgres.
 - The data model is still a JSON document mirror; normalized relational tables for customers, campaigns, recipients, and events remain future production hardening.
+
+## Update (May 30, 2026 - Optional Twilio Provider Path)
+
+### Done
+- Added raw request body capture for provider webhook validation.
+- Added Twilio-compatible webhook signature validation for form-encoded callbacks.
+- Added optional real Twilio REST sends when all required env vars are present:
+  - `TWILIO_ACCOUNT_SID`,
+  - `TWILIO_AUTH_TOKEN`,
+  - and either `TWILIO_MESSAGING_SERVICE_SID` or `TWILIO_FROM_NUMBER`.
+- Kept simulated provider sends as the default when credentials are absent.
+- Added send batch persistence in state under `smsBatches`.
+- Added provider message IDs/errors to `/api/sms/send` responses.
+- Added failed/undelivered metric tracking from webhooks.
+- Added STOP/UNSUBSCRIBE opt-out handling from inbound webhook bodies.
+- Added `GET /api/sms/health` to verify provider readiness without exposing secrets.
+
+### Not Done Yet
+- Real Twilio credentials are not set in Railway yet, so live sends remain in simulated mode until those secrets are configured.
+- Twilio JSON webhook validation with `bodySHA256` can be added later if the callback is switched away from form encoding.

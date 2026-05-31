@@ -15,6 +15,7 @@ const statePath = path.join(dataDir, "state.json");
 const { Pool } = pg;
 
 const workflowRuns = new Map();
+const twilioApiBase = "https://api.twilio.com/2010-04-01";
 const storageStatus = {
   mode: process.env.DATABASE_URL ? "postgres" : "file",
   connected: false,
@@ -71,6 +72,10 @@ const campaignMetrics = new Map([
 
 const optOuts = new Map();
 const sessions = new Map();
+
+function rawBodySaver(req, _res, buf) {
+  if (buf?.length) req.rawBody = buf.toString("utf8");
+}
 
 function defaultState() {
   return {
@@ -185,6 +190,72 @@ function parseCookies(header = "") {
   return Object.fromEntries(header.split(";").map((part) => part.trim().split("=")).filter(([key]) => key).map(([key, ...value]) => [key, decodeURIComponent(value.join("="))]));
 }
 
+function publicRequestUrl(req) {
+  const configured = process.env.PUBLIC_APP_URL || process.env.RAILWAY_PUBLIC_DOMAIN && `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`;
+  if (configured) return `${configured.replace(/\/$/, "")}${req.originalUrl}`;
+  const proto = req.headers["x-forwarded-proto"] || req.protocol || "https";
+  const host = req.headers["x-forwarded-host"] || req.headers.host;
+  return `${proto}://${host}${req.originalUrl}`;
+}
+
+function timingSafeEqualString(left, right) {
+  const a = Buffer.from(String(left || ""));
+  const b = Buffer.from(String(right || ""));
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
+
+function validateTwilioSignature(req) {
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  if (!token) return { ok: true, mode: "not_configured" };
+  const signature = req.headers["x-twilio-signature"];
+  if (!signature) return { ok: false, mode: "missing_signature" };
+
+  const params = req.is("application/json")
+    ? {}
+    : Object.fromEntries(Object.entries(req.body || {}).map(([key, value]) => [key, Array.isArray(value) ? value.join(",") : String(value)]));
+  const signed = Object.keys(params).sort().reduce((acc, key) => `${acc}${key}${params[key]}`, publicRequestUrl(req));
+  const expected = crypto.createHmac("sha1", token).update(signed).digest("base64");
+  return { ok: timingSafeEqualString(expected, signature), mode: "validated" };
+}
+
+function twilioConfigured() {
+  return Boolean(
+    process.env.TWILIO_ACCOUNT_SID
+    && process.env.TWILIO_AUTH_TOKEN
+    && (process.env.TWILIO_MESSAGING_SERVICE_SID || process.env.TWILIO_FROM_NUMBER),
+  );
+}
+
+async function sendTwilioMessage({ to, body, statusCallback }) {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const params = new URLSearchParams({ To: to, Body: body });
+  if (process.env.TWILIO_MESSAGING_SERVICE_SID) params.set("MessagingServiceSid", process.env.TWILIO_MESSAGING_SERVICE_SID);
+  else params.set("From", process.env.TWILIO_FROM_NUMBER);
+  if (statusCallback) params.set("StatusCallback", statusCallback);
+
+  const response = await fetch(`${twilioApiBase}/Accounts/${accountSid}/Messages.json`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: params,
+  });
+  const text = await response.text();
+  let payload;
+  try {
+    payload = JSON.parse(text);
+  } catch {
+    payload = { raw: text };
+  }
+  if (!response.ok) {
+    throw new Error(payload?.message || payload?.raw || `Twilio status ${response.status}`);
+  }
+  return payload;
+}
+
 function getSessionUser(req) {
   const sid = parseCookies(req.headers.cookie || "").pielot_session;
   const userId = sessions.get(sid);
@@ -286,7 +357,9 @@ function validateCustomerRows(csvText) {
 await initPersistentStore();
 syncStateMaps();
 
-app.use(express.json({ limit: "1mb" }));
+app.set("trust proxy", true);
+app.use(express.json({ limit: "1mb", verify: rawBodySaver }));
+app.use(express.urlencoded({ extended: false, verify: rawBodySaver }));
 app.use(express.static(__dirname));
 
 app.get("/", (_req, res) => {
@@ -537,16 +610,20 @@ app.get("/api/campaigns/:id/metrics", (req, res) => {
 });
 
 app.post("/api/sms/webhook", (req, res) => {
-  if (process.env.TWILIO_AUTH_TOKEN && !req.headers["x-twilio-signature"]) {
-    return res.status(401).json({ ok: false, error: "missing_twilio_signature" });
+  const signature = validateTwilioSignature(req);
+  if (!signature.ok) {
+    return res.status(401).json({ ok: false, error: signature.mode });
   }
-  const campaignId = String(req.body?.campaign_id || demoCampaign.id);
-  const event = String(req.body?.event || "delivered").toLowerCase();
+  const campaignId = String(req.body?.campaign_id || req.body?.CampaignId || req.body?.campaignId || demoCampaign.id);
+  const twilioStatus = String(req.body?.MessageStatus || req.body?.SmsStatus || "").toLowerCase();
+  const inboundBody = String(req.body?.Body || req.body?.body || "").trim().toLowerCase();
+  const event = String(req.body?.event || twilioStatus || (["stop", "unsubscribe"].includes(inboundBody) ? "opt_out" : "delivered")).toLowerCase();
   const metrics = campaignMetrics.get(campaignId) || campaignMetrics.get(demoCampaign.id);
   const next = { ...metrics, campaign_id: campaignId, status: "Live", updated_at: new Date().toISOString() };
 
-  if (event === "sent") next.texts_sent += Number(req.body?.count || 1);
+  if (event === "sent" || event === "queued" || event === "accepted" || event === "sending") next.texts_sent += Number(req.body?.count || 1);
   if (event === "delivered") next.delivered += Number(req.body?.count || 1);
+  if (event === "failed" || event === "undelivered") next.failed = (next.failed || 0) + Number(req.body?.count || 1);
   if (event === "clicked") next.clicks += Number(req.body?.count || 1);
   if (event === "redeemed") {
     const count = Number(req.body?.count || 1);
@@ -555,8 +632,8 @@ app.post("/api/sms/webhook", (req, res) => {
     next.revenue += Number(req.body?.revenue || count * 28);
     next.profit_impact += Number(req.body?.profit || count * 11);
   }
-  if (event === "stop" || event === "opt_out") {
-    const phone = String(req.body?.phone || "unknown");
+  if (event === "stop" || event === "opt_out" || inboundBody === "stop" || inboundBody === "unsubscribe") {
+    const phone = normalizePhone(req.body?.phone || req.body?.From || "unknown");
     optOuts.set(phone, { phone, campaign_id: campaignId, opted_out_at: new Date().toISOString(), source: "sms_webhook" });
     next.unsubscribes += 1;
   }
@@ -568,37 +645,86 @@ app.post("/api/sms/webhook", (req, res) => {
   state.optOuts = [...optOuts.values()];
   state.auditLog = [...(state.auditLog || []), `${new Date().toISOString()} SMS webhook ${event} for ${campaignId}`];
   writeState(state);
-  res.json({ ok: true, metrics: next });
+  res.json({ ok: true, signature: signature.mode, metrics: next });
 });
 
 app.get("/api/opt-outs", (_req, res) => {
   res.json({ opt_outs: [...optOuts.values()] });
 });
 
-app.post("/api/sms/send", (req, res) => {
+app.post("/api/sms/send", async (req, res) => {
   const campaignId = String(req.body?.campaign_id || demoCampaign.id);
   const state = readState();
   const customers = (state.customers || []).filter((customer) => customer.optedIn && !optOuts.has(customer.phone));
   const batchId = `sms_batch_${Date.now()}`;
   const metrics = campaignMetrics.get(campaignId) || campaignMetrics.get(demoCampaign.id);
+  const provider = twilioConfigured() ? "twilio" : "simulated";
+  const statusCallback = `${(process.env.PUBLIC_APP_URL || "https://web-production-4277b.up.railway.app").replace(/\/$/, "")}/api/sms/webhook`;
+  const providerMessages = [];
+  const providerErrors = [];
+
+  if (provider === "twilio") {
+    for (const customer of customers) {
+      try {
+        const message = await sendTwilioMessage({
+          to: customer.phone,
+          body: demoCampaign.sms,
+          statusCallback,
+        });
+        providerMessages.push({ phone: customer.phone, sid: message.sid, status: message.status });
+      } catch (error) {
+        providerErrors.push({ phone: customer.phone, error: String(error?.message || error).slice(0, 180) });
+      }
+    }
+  }
+
   const nextMetrics = {
     ...metrics,
     campaign_id: campaignId,
-    status: process.env.TWILIO_ACCOUNT_SID ? "Sending via Twilio" : "Simulated provider send",
-    texts_sent: customers.length,
+    status: provider === "twilio" ? "Sending via Twilio" : "Simulated provider send",
+    texts_sent: provider === "twilio" ? providerMessages.length : customers.length,
+    failed: (metrics?.failed || 0) + providerErrors.length,
     updated_at: new Date().toISOString(),
-    timeline: [...(metrics?.timeline || []), process.env.TWILIO_ACCOUNT_SID ? "Twilio send requested" : "Simulated SMS send requested"],
+    timeline: [...(metrics?.timeline || []), provider === "twilio" ? `Twilio send requested (${providerMessages.length} accepted, ${providerErrors.length} failed)` : "Simulated SMS send requested"],
   };
   campaignMetrics.set(campaignId, nextMetrics);
   state.campaignMetrics = [...campaignMetrics.values()];
-  state.auditLog = [...(state.auditLog || []), `${new Date().toISOString()} SMS send ${batchId}: ${customers.length} recipients`];
+  state.smsBatches = [...(state.smsBatches || []), {
+    id: batchId,
+    campaign_id: campaignId,
+    provider,
+    created_at: new Date().toISOString(),
+    recipients: customers.length,
+    accepted: provider === "twilio" ? providerMessages.length : customers.length,
+    failed: providerErrors.length,
+    message_ids: providerMessages,
+    errors: providerErrors,
+  }];
+  state.auditLog = [...(state.auditLog || []), `${new Date().toISOString()} SMS send ${batchId}: ${customers.length} recipients via ${provider}`];
   writeState(state);
   res.json({
     ok: true,
     batch_id: batchId,
-    provider: process.env.TWILIO_ACCOUNT_SID ? "twilio" : "simulated",
+    provider,
     recipients: customers.length,
+    accepted: provider === "twilio" ? providerMessages.length : customers.length,
+    failed: providerErrors.length,
+    provider_messages: providerMessages,
+    provider_errors: providerErrors,
     metrics: nextMetrics,
+  });
+});
+
+app.get("/api/sms/health", (_req, res) => {
+  res.json({
+    provider: twilioConfigured() ? "twilio" : "simulated",
+    twilio_configured: twilioConfigured(),
+    account_sid_present: Boolean(process.env.TWILIO_ACCOUNT_SID),
+    auth_token_present: Boolean(process.env.TWILIO_AUTH_TOKEN),
+    from_number_present: Boolean(process.env.TWILIO_FROM_NUMBER),
+    messaging_service_present: Boolean(process.env.TWILIO_MESSAGING_SERVICE_SID),
+    webhook_signature_required: Boolean(process.env.TWILIO_AUTH_TOKEN),
+    status_callback_url: `${(process.env.PUBLIC_APP_URL || "https://web-production-4277b.up.railway.app").replace(/\/$/, "")}/api/sms/webhook`,
   });
 });
 
