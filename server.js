@@ -238,6 +238,7 @@ const appRoutes = [
   "/onboarding/upload",
   "/agent/scan",
   "/agent",
+  "/app",
   "/dashboard",
   "/opportunities/:id",
   "/campaigns",

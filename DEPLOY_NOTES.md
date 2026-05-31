@@ -90,3 +90,28 @@
 - Wire real Twilio credentials and validated provider webhooks.
 - Add password/OAuth auth instead of lightweight demo session login.
 - Add full CSV file picker upload; current UI supports pasted CSV import.
+
+## Update (May 30, 2026 - Easy Cloney UI Port)
+
+### Done
+- Pulled the `animvsh/easy-cloney-ui` reference and ported its fake-demo direction into the current Express app.
+- Replaced the mixed older screen style with the cream/charcoal Pielot frame:
+  - dark outer canvas,
+  - dotted cream paper,
+  - black framed cards,
+  - dark app sidebar,
+  - fake app dashboard,
+  - fake customer data interactions.
+- Added the uploaded Pielot logo image at `public/pielot-logo.png` and used it in the main nav.
+- Added `/app` as a functional fake demo route.
+- Verified locally in the in-app browser:
+  - `/` renders the fake-demo landing and customer data,
+  - `/app` renders the app preview and Run Autopilot adds activity,
+  - `/agent` uses the fake-demo dark sidebar shell.
+- Verified MiniMax locally:
+  - `/api/provider-health` returns `mode=live`,
+  - `/api/demo-chat` returns live MiniMax text with `DEMO_MODEL=MiniMax-M2.7`.
+
+### Not Done Yet
+- The MiniMax token is configured through environment variables only; do not commit it to GitHub.
+- Railway should be redeployed after this commit so the public URL receives the new fake-demo UI.
